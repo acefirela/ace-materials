@@ -232,10 +232,16 @@ function jobDetailSection(J) {
 function monthsSection(P) {
   const by = {};
   P.forEach((p) => { const k = ym(p.date); if (k) by[k] = (by[k] || 0) + Number(p.total || 0); });
-  const keys = Object.keys(by).sort().slice(-6);
-  if (!keys.length) return "";
+  const all = Object.keys(by).sort();
+  if (!all.length) return "";
+  const keys = all.slice(-24);
   const max = Math.max(...keys.map((k) => by[k]), 1);
-  return `<div class="card"><h2>Spend by month</h2><div class="months" style="padding:20px 0 40px">${keys.map((k) => `<div style="height:${Math.max(4, Math.round((by[k] / max) * 100))}%"><b>${money(by[k])}</b><span>${k}</span></div>`).join("")}</div></div>`;
+  const year = (k) => k.slice(0, 4), mon = (k) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(k.slice(5, 7)) - 1];
+  const yearTotals = {}; all.forEach((k) => { yearTotals[year(k)] = (yearTotals[year(k)] || 0) + by[k]; });
+  const label = (k, i) => (i === 0 || mon(k) === "Jan") ? `${mon(k)}<br>${year(k)}` : mon(k);
+  return `<div class="card"><h2>Spend by month <span class="muted small">(${keys.length} months · ${Object.entries(yearTotals).map(([y, v]) => `${y}: ${money(v)}`).join(" · ")})</span></h2>
+    <div class="wrap"><div class="months" style="padding:24px 0 44px;min-width:${keys.length * 46}px">${keys.map((k, i) => `<div style="height:${Math.max(3, Math.round((by[k] / max) * 100))}%" title="${k}: ${money(by[k])}"><b>${by[k] >= 1000 ? "$" + (by[k] / 1000).toFixed(1) + "k" : money(by[k]).replace(/\.\d\d$/, "")}</b><span>${label(k, i)}</span></div>`).join("")}</div></div>
+    <p class="muted small">All Five Star purchases, including ship tickets from email and card charges from QuickBooks that have no ticket on file. Returns reduce the month.</p></div>`;
 }
 
 function jobSection() {
@@ -273,13 +279,13 @@ function purchasesSection(P, J) {
   const jobOpts = (cur) => `<option value="">(unassigned)</option>` + jobs.map((j) => `<option ${j === cur ? "selected" : ""}>${esc(j)}</option>`).join("") + `<option value="__new">+ type a job...</option>`;
   const body = rows.map((p) => {
     const L = linesBy[p.id] || [];
-    const lines = L.length ? `<details class="small"><summary>${L.length} line${L.length > 1 ? "s" : ""}</summary><table style="margin-top:4px">${L.map((it) => `<tr><td>${esc(it.description)}<div class="muted">${esc(it.part_no)}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</table></details>` : `<span class="small">${esc(p.items)}</span>`;
+    const lines = L.length ? `<details class="small"><summary>${L.length} line${L.length > 1 ? "s" : ""}</summary><table style="margin-top:4px">${L.map((it) => `<tr><td>${esc(it.description)}<div class="muted">${esc(it.part_no)}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</table></details>` : p.source === "QuickBooks card charge" ? `<span class="small muted">card charge, no ticket on file</span>` : `<span class="small">${esc(p.items)}</span>`;
     return `<tr class="${String(p.job || "").trim() ? "" : "unassigned"}">
       <td style="white-space:nowrap">${esc(p.date)}</td>
       <td>${esc(p.supplier)}<div class="small muted">${esc(p.invoice_no)} ${p.type === "credit" ? '<span class="pill credit">credit</span>' : ""}${p.drive_file_id ? ` <a class="drive" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${esc(p.drive_file_id)}/view" title="Open the invoice in Drive">&#128196;</a>` : ""}</div></td>
       <td><select class="assign small" data-id="${esc(p.id)}">${jobOpts(p.job)}</select>${p.po_ref ? `<div class="small muted">PO: ${esc(p.po_ref)}</div>` : ""}</td>
       <td>${lines}${p.notes ? `<div class="small muted">${esc(p.notes)}</div>` : ""}</td>
-      <td class="num">${money(p.total)}<div class="small muted">${esc(p.payment)}</div></td>
+      <td class="num">${money(p.total)}<div class="small muted">${esc(p.payment)}${p.shipping ? `<br>incl. S&amp;H ${money(p.shipping)}` : ""}</div></td>
     </tr>`;
   }).join("");
   return `<div class="card"><h2>Purchases <span class="muted small">(${rows.length} shown, ${money(sum)})</span></h2>
