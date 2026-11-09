@@ -149,11 +149,11 @@ function render() {
   const unassigned = P.filter((p) => !String(p.job || "").trim());
   const unTotal = unassigned.reduce((a, p) => a + Number(p.total || 0), 0);
   const low = I.filter((i) => i.min_level !== "" && Number(i.qty_on_hand) <= Number(i.min_level));
-  const rises = H.filter((h) => Number(h.change_pct) > 0);
+  const rises = H.filter((h) => Number(h.change_pct) >= 10);
   let tiles = `
     <div class="tile"><div class="k">Spent this month</div><div class="v">${money(spentMonth)}</div><div class="s">${P.filter((p) => ym(p.date) === thisMonth).length} purchases</div></div>
     <div class="tile ${unassigned.length ? "warn" : ""}"><div class="k">Not assigned to a job</div><div class="v">${unassigned.length}</div><div class="s">${money(unTotal)}</div></div>
-    <div class="tile ${rises.length ? "warn" : ""}"><div class="k">Price increases</div><div class="v">${rises.length}</div><div class="s">items that cost more than last time</div></div>
+    <div class="tile ${rises.length ? "warn" : ""}"><div class="k">Price increases of 10%+</div><div class="v">${rises.length}</div><div class="s">${H.filter((h) => Number(h.change_pct) > 0 && Number(h.change_pct) < 10).length} smaller increases</div></div>
     <div class="tile ${low.length ? "bad" : ""}"><div class="k">Inventory at minimum</div><div class="v">${low.length}</div><div class="s">${I.length} items tracked</div></div>`;
   if (role === "admin") {
     const over = J.filter((j) => j.materials_budget && j.actual > Number(j.materials_budget));
@@ -335,7 +335,7 @@ function priceSection(H) {
   const hist = (h) => H.filter((x) => x.supplier === h.supplier && x.part_no === h.part_no).sort((a, b) => String(b.date).localeCompare(String(a.date)));
   const body = rows.map((h) => {
     const c = h.change_pct === "" ? "" : Number(h.change_pct);
-    const chg = c === "" ? `<span class="muted small">first buy</span>` : c > 0 ? `<span class="up">+${c}%</span>` : c < 0 ? `<span class="down">${c}%</span>` : `<span class="muted">same</span>`;
+    const chg = c === "" ? `<span class="muted small">first buy</span>` : c >= 10 ? `<span class="pill bad">+${c}%</span>` : c > 0 ? `<span class="up">+${c}%</span>` : c < 0 ? `<span class="down">${c}%</span>` : `<span class="muted">same</span>`;
     const hs = hist(h);
     const more = hs.length > 1 ? `<details class="small"><summary>${hs.length} buys</summary>${hs.map((x) => `<div>${esc(x.date)} · ${money3(x.unit_price)} · ${esc(x.qty)} ${esc(x.unit)} · ${esc(x.invoice_no)}</div>`).join("")}</details>` : "";
     return `<tr><td>${esc(h.description)}<div class="small muted">${esc(h.part_no)} · ${esc(h.supplier)}</div>${more}</td><td style="white-space:nowrap">${esc(h.date)}</td><td class="num">${money3(h.unit_price)}<div class="small muted">per ${esc(h.unit)}</div></td><td class="num">${h.prev_price === "" ? "" : money3(h.prev_price)}<div class="small muted">${esc(h.prev_date)}</div></td><td class="num">${chg}</td></tr>`;
