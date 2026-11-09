@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ace Materials Tracker</title>
+<meta name="description" content="Ace Fire LA materials spending by job - admin and staff views.">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1b1f24; --muted: #5f6b7a; --line: #e3e7ec;
+    --accent: #c8102e; --ok: #15803d; --warn: #b45309; --bad: #b91c1c; --soft: #fff1f2; --chip: #eef2f6;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #9aa5b1; --line: #2a313a; --soft: #2a1418; --chip: #222932;
+  } }
+  :root[data-theme="dark"] { --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #9aa5b1; --line: #2a313a; --soft: #2a1418; --chip: #222932; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--card); border-bottom: 3px solid var(--accent); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
+  header .sp { flex: 1; }
+  .badge { background: var(--chip); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+  .badge.admin { background: var(--soft); color: var(--accent); font-weight: 600; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  nav.tabs button { border-radius: 999px; padding: 6px 14px; }
+  nav.tabs button.on { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 10px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .tile .k { font-size: 12px; color: var(--muted); }
+  .tile .v { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .tile .s { font-size: 12px; color: var(--muted); }
+  .tile.bad .v { color: var(--bad); } .tile.warn .v { color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+  td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .wrap { overflow-x: auto; }
+  .bar { height: 8px; background: var(--chip); border-radius: 4px; overflow: hidden; min-width: 90px; }
+  .bar i { display: block; height: 100%; background: var(--ok); }
+  .bar.warn i { background: var(--warn); } .bar.bad i { background: var(--bad); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: var(--chip); color: var(--muted); }
+  .pill.bad { background: #fee2e2; color: var(--bad); } .pill.warn { background: #fef3c7; color: var(--warn); } .pill.ok { background: #dcfce7; color: var(--ok); }
+  .pill.credit { background: #e0f2fe; color: #075985; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  input, select, button, textarea { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  input, select, textarea { min-width: 0; }
+  input.cell { width: 80px; padding: 4px 6px; }
+  input.cell.wide { width: 110px; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  button.ghost { background: transparent; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .row .full { grid-column: 1 / -1; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 3px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .login { max-width: 380px; margin: 60px auto; }
+  .login h2 { margin-top: 0; }
+  .err { color: var(--bad); font-size: 13px; min-height: 18px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .small { font-size: 12px; }
+  a { color: var(--accent); }
+  .drive { text-decoration: none; }
+  .right { text-align: right; }
+  .months { display: grid; grid-auto-flow: column; gap: 8px; align-items: end; height: 120px; }
+  .months div { background: var(--accent); border-radius: 4px 4px 0 0; position: relative; }
+  .months div span { position: absolute; bottom: -34px; left: 0; right: 0; font-size: 11px; color: var(--muted); text-align: center; line-height: 1.2; }
+  .months div b { position: absolute; top: -18px; left: 0; right: 0; font-size: 11px; text-align: center; font-weight: 600; }
+  tr.unassigned td:first-child { border-left: 3px solid var(--warn); }
+  tr.low td:first-child { border-left: 3px solid var(--bad); }
+  .up { color: var(--bad); font-weight: 600; } .down { color: var(--ok); font-weight: 600; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { th, td { padding: 6px 4px; font-size: 13px; } header h1 { font-size: 15px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ace Fire LA &middot; Materials Tracker</h1>
+  <span class="sp"></span>
+  <span id="who" class="badge" hidden></span>
+  <button id="refresh" class="ghost" hidden title="Reload data">&#8635;</button>
+  <button id="logout" class="ghost" hidden>Sign out</button>
+</header>
+<main id="app"></main>
+
+<script>
+// Apps Script web app URL (set after the first deployment; see README).
+const API_URL = "https://script.google.com/macros/s/AKfycbzAnJsbq-E3UAhiLc3Xg_Wo0FMFXUo3N-erkOycUmMR_M5iG9rW0QWCROO0REDewzt5/exec";
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
+const money3 = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : "$" + Number(n).toFixed(3);
+const ym = (d) => String(d || "").slice(0, 7);
+const state = { role: null, name: "", passcode: "", data: null, tab: "purchases", job: "", filters: { q: "", job: "", supplier: "", month: "", unassigned: false }, pq: "", iq: "" };
+
+async function api(payload) {
+  const res = await fetch(API_URL, { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, passcode: state.passcode, name: state.name }) });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || "request failed");
+  return j;
+}
+
+function renderLogin(msg = "") {
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = true;
+  $("#app").innerHTML = `
+    <div class="card login">
+      <h2>Sign in</h2>
+      <p class="muted">Enter the passcode you were given and your name. Your name is recorded on anything you add.</p>
+      <form id="lf">
+        <label>Your name</label><input id="nm" required autocomplete="name" value="${esc(localStorage.getItem("mt_name") || "")}" style="width:100%">
+        <label style="margin-top:8px">Passcode</label><input id="pc" type="password" required autocomplete="off" style="width:100%">
+        <div class="err" id="le">${esc(msg)}</div>
+        <button class="primary" style="width:100%">Open tracker</button>
+      </form>
+    </div>`;
+  $("#lf").onsubmit = async (e) => {
+    e.preventDefault();
+    state.name = $("#nm").value.trim(); state.passcode = $("#pc").value.trim();
+    $("#le").textContent = "Checking...";
+    try {
+      const r = await api({ action: "login" });
+      state.role = r.role;
+      try { localStorage.setItem("mt_name", state.name); sessionStorage.setItem("mt_pc", state.passcode); } catch {}
+      await load();
+    } catch (err) { $("#le").textContent = err.message === "bad_passcode" ? "That passcode is not right." : "Could not sign in: " + err.message; }
+  };
+}
+
+async function load() {
+  $("#app").innerHTML = `<p class="muted">Loading...</p>`;
+  try {
+    const r = await api({ action: "list" });
+    state.role = r.role; state.data = r;
+    render();
+  } catch (err) { renderLogin("Session problem: " + err.message); }
+}
+
+function render() {
+  const { role, data } = state;
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = false;
+  $("#who").textContent = `${state.name} · ${role}`; $("#who").className = "badge " + role;
+  const P = data.purchases || [], J = data.jobs || [], I = data.inventory || [], H = data.price_history || [];
+  const thisMonth = ym(new Date().toISOString());
+  const spentMonth = P.filter((p) => ym(p.date) === thisMonth).reduce((a, p) => a + Number(p.total || 0), 0);
+  const unassigned = P.filter((p) => !String(p.job || "").trim());
+  const unTotal = unassigned.reduce((a, p) => a + Number(p.total || 0), 0);
+  const low = I.filter((i) => i.min_level !== "" && Number(i.qty_on_hand) <= Number(i.min_level));
+  const rises = H.filter((h) => Number(h.change_pct) > 0);
+  let tiles = `
+    <div class="tile"><div class="k">Spent this month</div><div class="v">${money(spentMonth)}</div><div class="s">${P.filter((p) => ym(p.date) === thisMonth).length} purchases</div></div>
+    <div class="tile ${unassigned.length ? "warn" : ""}"><div class="k">Not assigned to a job</div><div class="v">${unassigned.length}</div><div class="s">${money(unTotal)}</div></div>
+    <div class="tile ${rises.length ? "warn" : ""}"><div class="k">Price increases</div><div class="v">${rises.length}</div><div class="s">items that cost more than last time</div></div>
+    <div class="tile ${low.length ? "bad" : ""}"><div class="k">Inventory at minimum</div><div class="v">${low.length}</div><div class="s">${I.length} items tracked</div></div>`;
+  if (role === "admin") {
+    const over = J.filter((j) => j.materials_budget && j.actual > Number(j.materials_budget));
+    const near = J.filter((j) => j.materials_budget && j.pct >= 85 && j.actual <= Number(j.materials_budget));
+    tiles += `
+    <div class="tile ${over.length ? "bad" : ""}"><div class="k">Jobs over budget</div><div class="v">${over.length}</div><div class="s">${near.length} at 85% or more</div></div>
+    <div class="tile"><div class="k">Jobs tracked</div><div class="v">${J.length}</div><div class="s">${J.filter((j) => !j.materials_budget).length} without a budget</div></div>`;
+  }
+  const tabs = [["purchases", "Purchases"], ["prices", "Price history"], ["inventory", "Inventory"]];
+  if (role === "admin") tabs.unshift(["jobs", "Jobs & budgets"]);
+  if (!tabs.some((t) => t[0] === state.tab)) state.tab = tabs[0][0];
+  let html = `<div class="tiles">${tiles}</div><nav class="tabs">${tabs.map((t) => `<button data-tab="${t[0]}" class="${state.tab === t[0] ? "on" : ""}">${t[1]}</button>`).join("")}</nav>`;
+  if (state.tab === "jobs") html += budgetSection(J) + jobDetailSection(J) + monthsSection(P) + jobSection();
+  if (state.tab === "purchases") html += purchasesSection(P, J) + addSection(J);
+  if (state.tab === "prices") html += priceSection(H);
+  if (state.tab === "inventory") html += inventorySection(I);
+  $("#app").innerHTML = html;
+  wire();
+}
+
+// ---------- admin: jobs ----------
+function budgetSection(J) {
+  const rows = J.slice().sort((a, b) => (b.pct || 0) - (a.pct || 0)).map((j) => {
+    const b = Number(j.materials_budget || 0);
+    const cls = !b ? "" : j.pct > 100 ? "bad" : j.pct >= 85 ? "warn" : "ok";
+    const pill = !b ? `<span class="pill">no budget</span>` : j.pct > 100 ? `<span class="pill bad">OVER by ${money(j.actual - b)}</span>` : j.pct >= 85 ? `<span class="pill warn">${j.pct}%</span>` : `<span class="pill ok">${j.pct}%</span>`;
+    return `<tr>
+      <td><a href="#" class="pick-job" data-job="${esc(j.job)}"><b>${esc(j.job)}</b></a><div class="small muted">${esc(j.address)}${j.customer ? " · " + esc(j.customer) : ""}</div></td>
+      <td class="num">${money(j.quote_total)}</td>
+      <td class="num">${money(j.materials_budget)}${j.estimate_total != null && Math.abs(j.estimate_total - b) > 0.5 ? `<div class="small muted">lines: ${money(j.estimate_total)}</div>` : ""}</td>
+      <td class="num">${money(j.actual)}</td>
+      <td class="num">${b ? money(b - j.actual) : ""}</td>
+      <td><div class="bar ${cls}"><i style="width:${Math.min(100, j.pct || 0)}%"></i></div></td>
+      <td>${pill} <span class="pill">${esc(j.status || "open")}</span></td>
+      <td><button class="ghost small edit-job" data-job="${esc(j.job)}">edit</button></td>
+    </tr>`;
+  }).join("");
+  return `<div class="card"><h2>Materials budget vs actual, by job</h2>
+    <div class="wrap"><table><thead><tr><th>Job</th><th class="num">Quote</th><th class="num">Mat. budget</th><th class="num">Spent</th><th class="num">Left</th><th>Used</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="8" class="muted">No jobs yet. Add one below with its materials budget.</td></tr>`}</tbody></table></div>
+    <p class="muted small">Spent = all purchases whose job matches. Credits (returns) reduce it. Purchases with no job are not counted here. Click a job to see its estimate lines against what was bought.</p></div>`;
+}
+
+function jobDetailSection(J) {
+  const jobs = J.map((j) => j.job).filter(Boolean).sort();
+  if (!state.job && jobs.length) state.job = jobs[0];
+  const j = J.find((x) => x.job === state.job) || {};
+  const E = (state.data.estimate_items || []).filter((e) => String(e.job).trim() === state.job);
+  const pids = new Set((state.data.purchases || []).filter((p) => String(p.job).trim() === state.job).map((p) => p.id));
+  const B = (state.data.purchase_items || []).filter((it) => pids.has(it.purchase_id)).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const eSum = E.reduce((a, e) => a + Number(e.line_total || 0), 0), bSum = B.reduce((a, it) => a + Number(it.ext_price || 0), 0);
+  const eRows = E.map((e) => `<tr><td>${esc(e.item)}<div class="small muted">${esc(e.source)}${e.notes ? " · " + esc(e.notes) : ""}</div></td><td class="num">${esc(e.qty)} ${esc(e.unit)}</td><td class="num">${money(e.unit_cost)}</td><td class="num">${money(e.line_total)}</td></tr>`).join("");
+  const bRows = B.map((it) => `<tr><td style="white-space:nowrap">${esc(it.date)}</td><td>${esc(it.description)}<div class="small muted">${esc(it.part_no)}${it.original_sale ? " · return of " + esc(it.original_sale) : ""}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("");
+  return `<div class="card"><h2>Job detail: estimate vs bought
+      <select id="pickjob" style="margin-left:8px">${jobs.map((x) => `<option ${x === state.job ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></h2>
+    <p class="muted small">${esc(j.address || "")}${j.customer ? " · " + esc(j.customer) : ""} · budget ${money(j.materials_budget)} · spent ${money(j.actual)} (line items ${money(bSum)}, before tax)</p>
+    <div class="two">
+      <div><h2>Estimate lines <span class="muted small">${money(eSum)}</span></h2>
+        <div class="wrap"><table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>${eRows || `<tr><td colspan="4" class="muted">No estimate lines. Add them below; the materials budget becomes their sum.</td></tr>`}</tbody></table></div>
+        <details style="margin-top:8px"><summary class="small">Add an estimate line</summary>
+        <form id="estf" class="row" style="margin-top:8px">
+          <input type="hidden" name="job" value="${esc(state.job)}">
+          <div class="full"><label>Item</label><input name="item" required placeholder="6in gate valve, flanged"></div>
+          <div><label>Qty</label><input name="qty" type="number" step="0.01" value="1" required></div>
+          <div><label>Unit</label><input name="unit" value="ea"></div>
+          <div><label>Unit cost</label><input name="unit_cost" type="number" step="0.01" required></div>
+          <div><label>Source</label><input name="source" placeholder="Five Star quote, catalog, estimate"></div>
+          <div class="full"><label>Notes</label><input name="notes"></div>
+          <div class="full right"><span id="esterr" class="err"></span> <button class="primary">Add line</button></div>
+        </form></details></div>
+      <div><h2>Bought <span class="muted small">${money(bSum)} before tax</span></h2>
+        <div class="wrap"><table><thead><tr><th>Date</th><th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Ext</th></tr></thead><tbody>${bRows || `<tr><td colspan="5" class="muted">Nothing bought for this job yet.</td></tr>`}</tbody></table></div></div>
+    </div></div>`;
+}
+
+function monthsSection(P) {
+  const by = {};
+  P.forEach((p) => { const k = ym(p.date); if (k) by[k] = (by[k] || 0) + Number(p.total || 0); });
+  const keys = Object.keys(by).sort().slice(-6);
+  if (!keys.length) return "";
+  const max = Math.max(...keys.map((k) => by[k]), 1);
+  return `<div class="card"><h2>Spend by month</h2><div class="months" style="padding:20px 0 40px">${keys.map((k) => `<div style="height:${Math.max(4, Math.round((by[k] / max) * 100))}%"><b>${money(by[k])}</b><span>${k}</span></div>`).join("")}</div></div>`;
+}
+
+function jobSection() {
+  return `<div class="card"><details id="jobdet"><summary>Add or edit a job (admin)</summary>
+    <form id="jobf" class="row" style="margin-top:10px">
+      <div><label>Job (quote #)</label><input name="job" required placeholder="Q1479"></div>
+      <div><label>Address</label><input name="address"></div>
+      <div><label>Customer</label><input name="customer"></div>
+      <div><label>Quote total</label><input name="quote_total" type="number" step="0.01"></div>
+      <div><label>Materials budget</label><input name="materials_budget" type="number" step="0.01"></div>
+      <div><label>Labor days</label><input name="labor_days" type="number" step="0.5"></div>
+      <div><label>Status</label><select name="status"><option>open</option><option>in progress</option><option>closed</option></select></div>
+      <div class="full"><label>Notes</label><input name="notes"></div>
+      <div class="full right"><span id="joberr" class="err"></span> <button class="primary">Save job</button></div>
+    </form><p class="muted small">Budgets, estimate lines and quote totals are visible to admins only. Staff see the job name and address. A budget typed here is replaced by the sum of the estimate lines once any exist.</p></details></div>`;
+}
+
+// ---------- purchases ----------
+function purchasesSection(P, J) {
+  const f = state.filters;
+  const suppliers = [...new Set(P.map((p) => p.supplier).filter(Boolean))].sort();
+  const months = [...new Set(P.map((p) => ym(p.date)).filter(Boolean))].sort().reverse();
+  const jobs = [...new Set([...J.map((j) => j.job), ...P.map((p) => p.job)].filter(Boolean))].sort();
+  const linesBy = {};
+  (state.data.purchase_items || []).forEach((it) => { (linesBy[it.purchase_id] = linesBy[it.purchase_id] || []).push(it); });
+  const rows = P.filter((p) => {
+    if (f.unassigned && String(p.job || "").trim()) return false;
+    if (f.job && p.job !== f.job) return false;
+    if (f.supplier && p.supplier !== f.supplier) return false;
+    if (f.month && ym(p.date) !== f.month) return false;
+    if (f.q) { const s = (JSON.stringify(p) + JSON.stringify(linesBy[p.id] || [])).toLowerCase(); if (!s.includes(f.q.toLowerCase())) return false; }
+    return true;
+  }).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const sum = rows.reduce((a, p) => a + Number(p.total || 0), 0);
+  const jobOpts = (cur) => `<option value="">(unassigned)</option>` + jobs.map((j) => `<option ${j === cur ? "selected" : ""}>${esc(j)}</option>`).join("") + `<option value="__new">+ type a job...</option>`;
+  const body = rows.map((p) => {
+    const L = linesBy[p.id] || [];
+    const lines = L.length ? `<details class="small"><summary>${L.length} line${L.length > 1 ? "s" : ""}</summary><table style="margin-top:4px">${L.map((it) => `<tr><td>${esc(it.description)}<div class="muted">${esc(it.part_no)}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</table></details>` : `<span class="small">${esc(p.items)}</span>`;
+    return `<tr class="${String(p.job || "").trim() ? "" : "unassigned"}">
+      <td style="white-space:nowrap">${esc(p.date)}</td>
+      <td>${esc(p.supplier)}<div class="small muted">${esc(p.invoice_no)} ${p.type === "credit" ? '<span class="pill credit">credit</span>' : ""}${p.drive_file_id ? ` <a class="drive" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${esc(p.drive_file_id)}/view" title="Open the invoice in Drive">&#128196;</a>` : ""}</div></td>
+      <td><select class="assign small" data-id="${esc(p.id)}">${jobOpts(p.job)}</select>${p.po_ref ? `<div class="small muted">PO: ${esc(p.po_ref)}</div>` : ""}</td>
+      <td>${lines}${p.notes ? `<div class="small muted">${esc(p.notes)}</div>` : ""}</td>
+      <td class="num">${money(p.total)}<div class="small muted">${esc(p.payment)}</div></td>
+    </tr>`;
+  }).join("");
+  return `<div class="card"><h2>Purchases <span class="muted small">(${rows.length} shown, ${money(sum)})</span></h2>
+    <div class="filters">
+      <input id="fq" placeholder="Search invoices and line items" value="${esc(f.q)}" style="flex:1;min-width:140px">
+      <select id="fjob"><option value="">All jobs</option>${jobs.map((j) => `<option ${j === f.job ? "selected" : ""}>${esc(j)}</option>`).join("")}</select>
+      <select id="fsup"><option value="">All suppliers</option>${suppliers.map((s) => `<option ${s === f.supplier ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
+      <select id="fmon"><option value="">All months</option>${months.map((m) => `<option ${m === f.month ? "selected" : ""}>${m}</option>`).join("")}</select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="fun" ${f.unassigned ? "checked" : ""}> unassigned only</label>
+    </div>
+    <div class="wrap"><table><thead><tr><th>Date</th><th>Supplier / invoice</th><th>Job</th><th>Items</th><th class="num">Total</th></tr></thead>
+    <tbody>${body || `<tr><td colspan="5" class="muted">Nothing matches.</td></tr>`}</tbody></table></div></div>`;
+}
+
+function addSection(J) {
+  const jobs = J.map((j) => j.job).filter(Boolean).sort();
+  return `<div class="card"><details><summary>Add a purchase or receipt</summary>
+    <form id="addf" class="row" style="margin-top:10px">
+      <div><label>Date</label><input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></div>
+      <div><label>Supplier</label><input name="supplier" list="supl" required placeholder="Five Star, Home Depot..."><datalist id="supl">${[...new Set((state.data.purchases || []).map((p) => p.supplier))].map((s) => `<option value="${esc(s)}">`).join("")}</datalist></div>
+      <div><label>Invoice / receipt #</label><input name="invoice_no"></div>
+      <div><label>Job (quote # or address)</label><input name="job" list="jobl" placeholder="Q1479 or 'stock'"><datalist id="jobl">${jobs.map((j) => `<option value="${esc(j)}">`).join("")}<option value="stock"></datalist></div>
+      <div><label>Total (negative for a return)</label><input name="total" type="number" step="0.01" required></div>
+      <div><label>Paid with</label><input name="payment" placeholder="card ...3602, account, cash"></div>
+      <div class="full"><label>Items (short)</label><input name="items" placeholder="20 ft 6in C900 pipe, 1in nipples..."></div>
+      <div class="full"><label>Line items, optional, one per line: qty | part # | description | unit price</label><textarea name="lines" rows="3" placeholder="2 | ZNB0512 | 1in x 12in black nipple | 5.33&#10;20 ft | 6C900C200 | 6in C900 PVC pipe | 18.13"></textarea></div>
+      <div class="full"><label>Notes</label><input name="notes"></div>
+      <div class="full right"><span id="adderr" class="err"></span> <button class="primary">Save purchase</button></div>
+    </form><p class="muted small">Line items feed the price history and the per-job comparison. Five Star invoices are added automatically from Drive; add here only cash and card receipts from other stores.</p></details></div>`;
+}
+
+function parseLines(text) {
+  return String(text || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+    const [q, part_no, description, up] = l.split("|").map((s) => (s || "").trim());
+    const m = q.match(/^(-?[\d.]+)\s*([a-z]*)$/i) || [];
+    return { qty: m[1] ? Number(m[1]) : 1, unit: m[2] || "ea", part_no, description, unit_price: up === "" || up == null ? "" : Number(String(up).replace(/[$,]/g, "")) };
+  });
+}
+
+// ---------- price history ----------
+function priceSection(H) {
+  const q = state.pq.toLowerCase();
+  const latest = {};
+  H.forEach((h) => { const k = h.supplier + "|" + h.part_no; if (!latest[k] || String(h.date) > String(latest[k].date)) latest[k] = h; });
+  const rows = Object.values(latest).filter((h) => !q || (h.part_no + " " + h.description).toLowerCase().includes(q))
+    .sort((a, b) => (Number(b.change_pct) || 0) - (Number(a.change_pct) || 0) || String(b.date).localeCompare(String(a.date)));
+  const hist = (h) => H.filter((x) => x.supplier === h.supplier && x.part_no === h.part_no).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const body = rows.map((h) => {
+    const c = h.change_pct === "" ? "" : Number(h.change_pct);
+    const chg = c === "" ? `<span class="muted small">first buy</span>` : c > 0 ? `<span class="up">+${c}%</span>` : c < 0 ? `<span class="down">${c}%</span>` : `<span class="muted">same</span>`;
+    const hs = hist(h);
+    const more = hs.length > 1 ? `<details class="small"><summary>${hs.length} buys</summary>${hs.map((x) => `<div>${esc(x.date)} · ${money3(x.unit_price)} · ${esc(x.qty)} ${esc(x.unit)} · ${esc(x.invoice_no)}</div>`).join("")}</details>` : "";
+    return `<tr><td>${esc(h.description)}<div class="small muted">${esc(h.part_no)} · ${esc(h.supplier)}</div>${more}</td><td style="white-space:nowrap">${esc(h.date)}</td><td class="num">${money3(h.unit_price)}<div class="small muted">per ${esc(h.unit)}</div></td><td class="num">${h.prev_price === "" ? "" : money3(h.prev_price)}<div class="small muted">${esc(h.prev_date)}</div></td><td class="num">${chg}</td></tr>`;
+  }).join("");
+  return `<div class="card"><h2>Price history <span class="muted small">(${rows.length} items, latest price each; increases first)</span></h2>
+    <div class="filters"><input id="pq" placeholder="Search part or description" value="${esc(state.pq)}" style="flex:1;min-width:140px"></div>
+    <div class="wrap"><table><thead><tr><th>Item</th><th>Last bought</th><th class="num">Unit price</th><th class="num">Previous</th><th class="num">Change</th></tr></thead>
+    <tbody>${body || `<tr><td colspan="5" class="muted">No line items yet.</td></tr>`}</tbody></table></div>
+    <p class="muted small">Built from the line items of every invoice, by supplier and part number. Returns (credits) are left out.</p></div>`;
+}
+
+// ---------- inventory ----------
+function inventorySection(I) {
+  const q = state.iq.toLowerCase();
+  const rows = I.filter((i) => !q || (i.item + " " + i.part_no + " " + i.location).toLowerCase().includes(q)).sort((a, b) => String(a.item).localeCompare(String(b.item)));
+  const body = rows.map((i, n) => {
+    const lowCls = i.min_level !== "" && Number(i.qty_on_hand) <= Number(i.min_level) ? "low" : "";
+    return `<tr class="${lowCls}" data-n="${n}">
+      <td>${esc(i.item)}<div class="small muted">${esc(i.part_no)}${i.notes ? " · " + esc(i.notes) : ""}</div></td>
+      <td><input class="cell inv-qty" type="number" step="1" value="${esc(i.qty_on_hand)}"> <span class="small muted">${esc(i.unit)}</span></td>
+      <td><input class="cell wide inv-loc" value="${esc(i.location)}"></td>
+      <td><input class="cell inv-min" type="number" step="1" value="${esc(i.min_level)}"></td>
+      <td class="small muted">${i.last_counted ? esc(String(i.last_counted).slice(0, 10)) + "<br>" + esc(i.counted_by) : "never"}</td>
+      <td><button class="ghost small inv-save" data-part="${esc(i.part_no)}" data-item="${esc(i.item)}">save</button></td>
+    </tr>`;
+  }).join("");
+  return `<div class="card"><h2>Inventory <span class="muted small">(${rows.length} items)</span></h2>
+    <div class="filters"><input id="iq" placeholder="Search item, part or location" value="${esc(state.iq)}" style="flex:1;min-width:140px"></div>
+    <div class="wrap"><table><thead><tr><th>Item</th><th>On hand</th><th>Location</th><th>Min</th><th>Last count</th><th></th></tr></thead>
+    <tbody>${body || `<tr><td colspan="6" class="muted">No inventory items yet.</td></tr>`}</tbody></table></div>
+    <details style="margin-top:8px"><summary class="small">Add an inventory item</summary>
+    <form id="invf" class="row" style="margin-top:8px">
+      <div class="full"><label>Item</label><input name="item" required placeholder="1in black malleable plug"></div>
+      <div><label>Part #</label><input name="part_no"></div>
+      <div><label>Unit</label><input name="unit" value="ea"></div>
+      <div><label>On hand</label><input name="qty_on_hand" type="number" step="1"></div>
+      <div><label>Location</label><input name="location" value="shop"></div>
+      <div><label>Minimum</label><input name="min_level" type="number" step="1"></div>
+      <div class="full"><label>Notes</label><input name="notes"></div>
+      <div class="full right"><span id="inverr" class="err"></span> <button class="primary">Add item</button></div>
+    </form></details>
+    <p class="muted small">Type the counted quantity and press save. The date and your name are recorded with every count. Items at or below their minimum are marked in red.</p></div>`;
+}
+
+// ---------- wiring ----------
+function wire() {
+  const f = state.filters;
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+  const on = (sel, ev, fn) => { const el = $(sel); if (el) el[ev] = fn; };
+  on("#fq", "oninput", (e) => { f.q = e.target.value; render(); $("#fq").focus(); $("#fq").setSelectionRange(f.q.length, f.q.length); });
+  on("#fjob", "onchange", (e) => { f.job = e.target.value; render(); });
+  on("#fsup", "onchange", (e) => { f.supplier = e.target.value; render(); });
+  on("#fmon", "onchange", (e) => { f.month = e.target.value; render(); });
+  on("#fun", "onchange", (e) => { f.unassigned = e.target.checked; render(); });
+  on("#pq", "oninput", (e) => { state.pq = e.target.value; render(); $("#pq").focus(); $("#pq").setSelectionRange(state.pq.length, state.pq.length); });
+  on("#iq", "oninput", (e) => { state.iq = e.target.value; render(); $("#iq").focus(); $("#iq").setSelectionRange(state.iq.length, state.iq.length); });
+  on("#pickjob", "onchange", (e) => { state.job = e.target.value; render(); });
+  document.querySelectorAll(".pick-job").forEach((a) => a.onclick = (e) => { e.preventDefault(); state.job = a.dataset.job; render(); $("#pickjob")?.scrollIntoView({ behavior: "smooth" }); });
+  document.querySelectorAll(".assign").forEach((sel) => sel.onchange = async (e) => {
+    let job = e.target.value;
+    if (job === "__new") { job = prompt("Job (quote # or address):", "") || ""; }
+    e.target.disabled = true;
+    try { await api({ action: "assign", id: e.target.dataset.id, job }); await load(); }
+    catch (err) { alert("Could not assign: " + err.message); e.target.disabled = false; }
+  });
+  on("#addf", "onsubmit", async (e) => {
+    e.preventDefault();
+    const purchase = Object.fromEntries(new FormData(e.target).entries());
+    const lines = parseLines(purchase.lines); delete purchase.lines;
+    $("#adderr").textContent = "Saving...";
+    try { await api({ action: "add", purchase, lines }); await load(); }
+    catch (err) { $("#adderr").textContent = err.message; }
+  });
+  on("#estf", "onsubmit", async (e) => {
+    e.preventDefault();
+    const item = Object.fromEntries(new FormData(e.target).entries());
+    $("#esterr").textContent = "Saving...";
+    try { await api({ action: "addEstimateItem", item }); await load(); }
+    catch (err) { $("#esterr").textContent = err.message; }
+  });
+  on("#invf", "onsubmit", async (e) => {
+    e.preventDefault();
+    const item = Object.fromEntries(new FormData(e.target).entries());
+    $("#inverr").textContent = "Saving...";
+    try { await api({ action: "setInventory", item }); await load(); }
+    catch (err) { $("#inverr").textContent = err.message; }
+  });
+  document.querySelectorAll(".inv-save").forEach((b) => b.onclick = async () => {
+    const tr = b.closest("tr");
+    const item = { item: b.dataset.item, part_no: b.dataset.part, qty_on_hand: $(".inv-qty", tr).value, location: $(".inv-loc", tr).value, min_level: $(".inv-min", tr).value };
+    b.disabled = true; b.textContent = "saving...";
+    try { await api({ action: "setInventory", item }); await load(); }
+    catch (err) { alert("Could not save: " + err.message); b.disabled = false; b.textContent = "save"; }
+  });
+  const jf = $("#jobf");
+  if (jf) {
+    jf.onsubmit = async (e) => {
+      e.preventDefault();
+      const job = Object.fromEntries(new FormData(e.target).entries());
+      $("#joberr").textContent = "Saving...";
+      try { await api({ action: "upsertJob", job }); await load(); }
+      catch (err) { $("#joberr").textContent = err.message; }
+    };
+    document.querySelectorAll(".edit-job").forEach((b) => b.onclick = () => {
+      const j = (state.data.jobs || []).find((x) => x.job === b.dataset.job) || {};
+      $("#jobdet").open = true;
+      ["job", "address", "customer", "quote_total", "materials_budget", "labor_days", "status", "notes"].forEach((k) => { if (jf.elements[k]) jf.elements[k].value = j[k] ?? ""; });
+      jf.scrollIntoView({ behavior: "smooth" });
+    });
+  }
+  $("#refresh").onclick = load;
+  $("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; renderLogin(); };
+}
+
+(function boot() {
+  try { state.name = localStorage.getItem("mt_name") || ""; state.passcode = sessionStorage.getItem("mt_pc") || ""; } catch {}
+  if (API_URL.startsWith("PASTE_")) { $("#app").innerHTML = `<div class="card"><b>Not connected yet.</b> The Apps Script URL has not been set in this page (see README).</div>`; return; }
+  if (state.passcode && state.name) load(); else renderLogin();
+})();
+</script>
+</body>
+</html>
