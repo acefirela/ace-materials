@@ -35,7 +35,7 @@
   .tile.bad .v { color: var(--bad); } .tile.warn .v { color: var(--warn); }
   table { width: 100%; border-collapse: collapse; font-size: 16px; }
   th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+  th { font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
   td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .wrap { overflow-x: auto; }
   .bar { height: 8px; background: var(--chip); border-radius: 4px; overflow: hidden; min-width: 90px; }
@@ -66,8 +66,8 @@
   .right { text-align: right; }
   .months { display: grid; grid-auto-flow: column; gap: 8px; align-items: end; height: 120px; }
   .months div { background: var(--accent); border-radius: 4px 4px 0 0; position: relative; }
-  .months div span { position: absolute; bottom: -36px; left: 0; right: 0; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.2; }
-  .months div b { position: absolute; top: -20px; left: 0; right: 0; font-size: 12px; text-align: center; font-weight: 600; }
+  .months div span { position: absolute; bottom: -40px; left: 0; right: 0; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.2; }
+  .months div b { position: absolute; top: -22px; left: 0; right: 0; font-size: 14px; text-align: center; font-weight: 600; }
   tr.unassigned td:first-child { border-left: 3px solid var(--warn); }
   tr.low td:first-child { border-left: 3px solid var(--bad); }
   .up { color: var(--bad); font-weight: 600; } .down { color: var(--ok); font-weight: 600; }
@@ -95,11 +95,18 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const money = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
 const money3 = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : "$" + Number(n).toFixed(3);
 const ym = (d) => String(d || "").slice(0, 7);
+const todayPT = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+const isLow = (i) => i.min_level !== "" && i.min_level != null && i.qty_on_hand !== "" && i.qty_on_hand != null && Number(i.qty_on_hand) <= Number(i.min_level);
 const state = { role: null, name: "", passcode: "", data: null, tab: "purchases", job: "", filters: { q: "", job: "", supplier: "", month: "", unassigned: false }, pq: "", iq: "" };
 
 async function api(payload) {
-  const res = await fetch(API_URL, { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, passcode: state.passcode, name: state.name }) });
-  const j = await res.json();
+  let text;
+  try {
+    const res = await fetch(API_URL, { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, passcode: state.passcode, name: state.name }) });
+    text = await res.text();
+  } catch { throw new Error("Could not reach the server. Check the connection and try again."); }
+  let j;
+  try { j = JSON.parse(text); } catch { throw new Error("The server did not answer properly. Try again."); }
   if (!j.ok) throw new Error(j.error || "request failed");
   return j;
 }
@@ -131,24 +138,34 @@ function renderLogin(msg = "") {
 }
 
 async function load() {
-  $("#app").innerHTML = `<p class="muted">Loading...</p>`;
-  try {
-    const r = await api({ action: "list" });
-    state.role = r.role; state.data = r;
-    render();
-  } catch (err) { renderLogin("Session problem: " + err.message); }
+  if (!state.data) $("#app").innerHTML = `<p class="muted">Loading...</p>`;
+  let r;
+  try { r = await api({ action: "list" }); }
+  catch (err) {
+    if (err.message === "bad_passcode") { state.data = null; renderLogin("That passcode is not right. Please sign in again."); return; }
+    if (state.data) {
+      render();
+      $("#app").insertAdjacentHTML("afterbegin", `<p class="err">Could not refresh: ${esc(err.message)} <button id="retry" class="ghost small">Retry</button></p>`);
+    } else {
+      $("#app").innerHTML = `<div class="card"><p class="err">${esc(err.message)}</p><button id="retry" class="primary">Try again</button></div>`;
+    }
+    $("#retry").onclick = load;
+    return;
+  }
+  state.role = r.role; state.data = r;
+  render();
 }
 
 function render() {
   const { role, data } = state;
   $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = false;
   $("#who").textContent = `${state.name} · ${role}`; $("#who").className = "badge " + role;
-  const P = data.purchases || [], J = data.jobs || [], I = data.inventory || [], H = data.price_history || [];
-  const thisMonth = ym(new Date().toISOString());
+  const P = data.purchases || [], J = data.jobs || [], I = data.inventory || [], H = (data.price_history || []).filter((h) => Number(h.unit_price) > 0);
+  const thisMonth = ym(todayPT());
   const spentMonth = P.filter((p) => ym(p.date) === thisMonth).reduce((a, p) => a + Number(p.total || 0), 0);
   const unassigned = P.filter((p) => !String(p.job || "").trim());
   const unTotal = unassigned.reduce((a, p) => a + Number(p.total || 0), 0);
-  const low = I.filter((i) => i.min_level !== "" && Number(i.qty_on_hand) <= Number(i.min_level));
+  const low = I.filter(isLow);
   const rises = H.filter((h) => Number(h.change_pct) >= 10);
   let tiles = `
     <div class="tile"><div class="k">Spent this month</div><div class="v">${money(spentMonth)}</div><div class="s">${P.filter((p) => ym(p.date) === thisMonth).length} purchases</div></div>
@@ -240,7 +257,7 @@ function monthsSection(P) {
   const yearTotals = {}; all.forEach((k) => { yearTotals[year(k)] = (yearTotals[year(k)] || 0) + by[k]; });
   const label = (k, i) => (i === 0 || mon(k) === "Jan") ? `${mon(k)}<br>${year(k)}` : mon(k);
   return `<div class="card"><h2>Spend by month <span class="muted small">(${keys.length} months · ${Object.entries(yearTotals).map(([y, v]) => `${y}: ${money(v)}`).join(" · ")})</span></h2>
-    <div class="wrap"><div class="months" style="padding:24px 0 44px;min-width:${keys.length * 46}px">${keys.map((k, i) => `<div style="height:${Math.max(3, Math.round((by[k] / max) * 100))}%" title="${k}: ${money(by[k])}"><b>${by[k] >= 1000 ? "$" + (by[k] / 1000).toFixed(1) + "k" : money(by[k]).replace(/\.\d\d$/, "")}</b><span>${label(k, i)}</span></div>`).join("")}</div></div>
+    <div class="wrap"><div class="months" style="padding:26px 0 50px;min-width:${keys.length * 52}px">${keys.map((k, i) => `<div style="height:${Math.max(3, Math.round((by[k] / max) * 100))}%" title="${esc(k)}: ${money(by[k])}"><b>${by[k] >= 1000 ? "$" + (by[k] / 1000).toFixed(1) + "k" : money(by[k]).replace(/\.\d\d$/, "")}</b><span>${label(k, i)}</span></div>`).join("")}</div></div>
     <p class="muted small">All Five Star purchases, including ship tickets from email and card charges from QuickBooks that have no ticket on file. Returns reduce the month.</p></div>`;
 }
 
@@ -276,14 +293,14 @@ function purchasesSection(P, J) {
     return true;
   }).sort((a, b) => String(b.date).localeCompare(String(a.date)));
   const sum = rows.reduce((a, p) => a + Number(p.total || 0), 0);
-  const jobOpts = (cur) => `<option value="">(unassigned)</option>` + jobs.map((j) => `<option ${j === cur ? "selected" : ""}>${esc(j)}</option>`).join("") + `<option value="__new">+ type a job...</option>`;
+  const jobOpts = (cur) => `<option value="">(unassigned)</option>` + jobs.map((j) => `<option ${j === cur ? "selected" : ""}>${esc(j)}</option>`).join("") + (jobs.some((j) => String(j).toLowerCase() === "stock") ? "" : `<option>stock</option>`) + `<option value="__new">+ type a job...</option>`;
   const body = rows.map((p) => {
     const L = linesBy[p.id] || [];
     const lines = L.length ? `<details class="small"><summary>${L.length} line${L.length > 1 ? "s" : ""}</summary><table style="margin-top:4px">${L.map((it) => `<tr><td>${esc(it.description)}<div class="muted">${esc(it.part_no)}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</table></details>` : p.source === "QuickBooks card charge" ? `<span class="small muted">card charge, no ticket on file</span>` : `<span class="small">${esc(p.items)}</span>`;
     return `<tr class="${String(p.job || "").trim() ? "" : "unassigned"}">
       <td style="white-space:nowrap">${esc(p.date)}</td>
       <td>${esc(p.supplier)}<div class="small muted">${esc(p.invoice_no)} ${p.type === "credit" ? '<span class="pill credit">credit</span>' : ""}${p.drive_file_id ? ` <a class="drive" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${esc(p.drive_file_id)}/view" title="Open the invoice in Drive">&#128196;</a>` : ""}</div></td>
-      <td><select class="assign small" data-id="${esc(p.id)}">${jobOpts(p.job)}</select>${p.po_ref ? `<div class="small muted">PO: ${esc(p.po_ref)}</div>` : ""}</td>
+      <td><select class="assign small" data-id="${esc(p.id)}" data-cur="${esc(p.job || "")}">${jobOpts(p.job)}</select>${p.po_ref ? `<div class="small muted">PO: ${esc(p.po_ref)}</div>` : ""}</td>
       <td>${lines}${p.notes ? `<div class="small muted">${esc(p.notes)}</div>` : ""}</td>
       <td class="num">${money(p.total)}<div class="small muted">${esc(p.payment)}${p.shipping ? `<br>incl. S&amp;H ${money(p.shipping)}` : ""}</div></td>
     </tr>`;
@@ -293,8 +310,8 @@ function purchasesSection(P, J) {
       <input id="fq" placeholder="Search invoices and line items" value="${esc(f.q)}" style="flex:1;min-width:140px">
       <select id="fjob"><option value="">All jobs</option>${jobs.map((j) => `<option ${j === f.job ? "selected" : ""}>${esc(j)}</option>`).join("")}</select>
       <select id="fsup"><option value="">All suppliers</option>${suppliers.map((s) => `<option ${s === f.supplier ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
-      <select id="fmon"><option value="">All months</option>${months.map((m) => `<option ${m === f.month ? "selected" : ""}>${m}</option>`).join("")}</select>
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="fun" ${f.unassigned ? "checked" : ""}> unassigned only</label>
+      <select id="fmon"><option value="">All months</option>${months.map((m) => `<option ${m === f.month ? "selected" : ""}>${esc(m)}</option>`).join("")}</select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:14px"><input type="checkbox" id="fun" ${f.unassigned ? "checked" : ""}> unassigned only</label>
     </div>
     <div class="wrap"><table><thead><tr><th>Date</th><th>Supplier / invoice</th><th>Job</th><th>Items</th><th class="num">Total</th></tr></thead>
     <tbody>${body || `<tr><td colspan="5" class="muted">Nothing matches.</td></tr>`}</tbody></table></div></div>`;
@@ -304,7 +321,7 @@ function addSection(J) {
   const jobs = J.map((j) => j.job).filter(Boolean).sort();
   return `<div class="card"><details><summary>Add a purchase or receipt</summary>
     <form id="addf" class="row" style="margin-top:10px">
-      <div><label>Date</label><input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></div>
+      <div><label>Date</label><input name="date" type="date" required value="${todayPT()}"></div>
       <div><label>Supplier</label><input name="supplier" list="supl" required placeholder="Five Star, Home Depot..."><datalist id="supl">${[...new Set((state.data.purchases || []).map((p) => p.supplier))].map((s) => `<option value="${esc(s)}">`).join("")}</datalist></div>
       <div><label>Invoice / receipt #</label><input name="invoice_no"></div>
       <div><label>Job (quote # or address)</label><input name="job" list="jobl" placeholder="Q1479 or 'stock'"><datalist id="jobl">${jobs.map((j) => `<option value="${esc(j)}">`).join("")}<option value="stock"></datalist></div>
@@ -352,7 +369,7 @@ function inventorySection(I) {
   const q = state.iq.toLowerCase();
   const rows = I.filter((i) => !q || (i.item + " " + i.part_no + " " + i.location).toLowerCase().includes(q)).sort((a, b) => String(a.item).localeCompare(String(b.item)));
   const body = rows.map((i, n) => {
-    const lowCls = i.min_level !== "" && Number(i.qty_on_hand) <= Number(i.min_level) ? "low" : "";
+    const lowCls = isLow(i) ? "low" : "";
     return `<tr class="${lowCls}" data-n="${n}">
       <td>${esc(i.item)}<div class="small muted">${esc(i.part_no)}${i.notes ? " · " + esc(i.notes) : ""}</div></td>
       <td><input class="cell inv-qty" type="number" step="1" value="${esc(i.qty_on_hand)}"> <span class="small muted">${esc(i.unit)}</span></td>
@@ -394,34 +411,62 @@ function wire() {
   on("#iq", "oninput", (e) => { state.iq = e.target.value; render(); $("#iq").focus(); $("#iq").setSelectionRange(state.iq.length, state.iq.length); });
   on("#pickjob", "onchange", (e) => { state.job = e.target.value; render(); });
   document.querySelectorAll(".pick-job").forEach((a) => a.onclick = (e) => { e.preventDefault(); state.job = a.dataset.job; render(); $("#pickjob")?.scrollIntoView({ behavior: "smooth" }); });
-  document.querySelectorAll(".assign").forEach((sel) => sel.onchange = async (e) => {
-    let job = e.target.value;
-    if (job === "__new") { job = prompt("Job (quote # or address):", "") || ""; }
-    e.target.disabled = true;
-    try { await api({ action: "assign", id: e.target.dataset.id, job }); await load(); }
-    catch (err) { alert("Could not assign: " + err.message); e.target.disabled = false; }
+  document.querySelectorAll(".assign").forEach((sel) => {
+    const cell = sel.parentElement;
+    const clear = () => cell.querySelectorAll(".assign-new, .assign-msg").forEach((x) => x.remove());
+    const restore = () => { sel.value = sel.dataset.cur; sel.disabled = false; };
+    const send = async (job) => {
+      sel.disabled = true;
+      try { await api({ action: "assign", id: sel.dataset.id, job }); await load(); }
+      catch (err) {
+        restore();
+        const m = document.createElement("div"); m.className = "err small assign-msg"; m.textContent = "Could not assign: " + err.message;
+        sel.after(m);
+      }
+    };
+    sel.onchange = () => {
+      clear();
+      if (sel.value !== "__new") return send(sel.value);
+      const box = document.createElement("span"); box.className = "assign-new";
+      box.innerHTML = ` <input class="cell wide" placeholder="Quote # or address" aria-label="Job"> <button type="button" class="ghost small">OK</button> <button type="button" class="ghost small">Cancel</button>`;
+      sel.after(box);
+      const inp = $("input", box), [okBtn, cancelBtn] = box.querySelectorAll("button");
+      const cancel = () => { clear(); restore(); };
+      const ok = () => { const job = inp.value.trim(); if (!job) return cancel(); clear(); send(job); };
+      okBtn.onclick = ok; cancelBtn.onclick = cancel;
+      inp.onkeydown = (e) => { if (e.key === "Enter") ok(); else if (e.key === "Escape") cancel(); };
+      inp.focus();
+    };
   });
+  const save = async (e, errSel, payload) => {
+    const btn = e.target.querySelector("button.primary");
+    if (btn) btn.disabled = true;
+    $(errSel).textContent = "Saving...";
+    try { await api(payload); await load(); }
+    catch (err) { $(errSel).textContent = err.message; if (btn) btn.disabled = false; }
+  };
   on("#addf", "onsubmit", async (e) => {
     e.preventDefault();
     const purchase = Object.fromEntries(new FormData(e.target).entries());
     const lines = parseLines(purchase.lines); delete purchase.lines;
-    $("#adderr").textContent = "Saving...";
-    try { await api({ action: "add", purchase, lines }); await load(); }
-    catch (err) { $("#adderr").textContent = err.message; }
+    const norm = (s) => String(s ?? "").trim().toLowerCase();
+    if (norm(purchase.invoice_no) && !e.target.dataset.dupOk && (state.data.purchases || []).some((p) => norm(p.supplier) === norm(purchase.supplier) && norm(p.invoice_no) === norm(purchase.invoice_no))) {
+      e.target.dataset.dupOk = "1";
+      $("#adderr").textContent = "This supplier and invoice number is already in the list. Press Save again to add it anyway.";
+      return;
+    }
+    await save(e, "#adderr", { action: "add", purchase, lines });
   });
+  on("#addf", "oninput", (e) => { delete e.currentTarget.dataset.dupOk; });
   on("#estf", "onsubmit", async (e) => {
     e.preventDefault();
     const item = Object.fromEntries(new FormData(e.target).entries());
-    $("#esterr").textContent = "Saving...";
-    try { await api({ action: "addEstimateItem", item }); await load(); }
-    catch (err) { $("#esterr").textContent = err.message; }
+    await save(e, "#esterr", { action: "addEstimateItem", item });
   });
   on("#invf", "onsubmit", async (e) => {
     e.preventDefault();
     const item = Object.fromEntries(new FormData(e.target).entries());
-    $("#inverr").textContent = "Saving...";
-    try { await api({ action: "setInventory", item }); await load(); }
-    catch (err) { $("#inverr").textContent = err.message; }
+    await save(e, "#inverr", { action: "setInventory", item });
   });
   document.querySelectorAll(".inv-save").forEach((b) => b.onclick = async () => {
     const tr = b.closest("tr");
@@ -435,9 +480,7 @@ function wire() {
     jf.onsubmit = async (e) => {
       e.preventDefault();
       const job = Object.fromEntries(new FormData(e.target).entries());
-      $("#joberr").textContent = "Saving...";
-      try { await api({ action: "upsertJob", job }); await load(); }
-      catch (err) { $("#joberr").textContent = err.message; }
+      await save(e, "#joberr", { action: "upsertJob", job });
     };
     document.querySelectorAll(".edit-job").forEach((b) => b.onclick = () => {
       const j = (state.data.jobs || []).find((x) => x.job === b.dataset.job) || {};
@@ -447,7 +490,7 @@ function wire() {
     });
   }
   $("#refresh").onclick = load;
-  $("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; renderLogin(); };
+  $("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; state.data = null; renderLogin(); };
 }
 
 (function boot() {
