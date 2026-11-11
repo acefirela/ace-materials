@@ -7,73 +7,150 @@
 <meta name="description" content="Ace Fire LA materials spending by job - admin and staff views.">
 <style>
   :root {
-    --bg: #f6f7f9; --card: #ffffff; --ink: #1b1f24; --muted: #5f6b7a; --line: #e3e7ec;
-    --accent: #c8102e; --ok: #15803d; --warn: #b45309; --bad: #b91c1c; --soft: #fff1f2; --chip: #eef2f6;
+    --bg: #f4f5f7; --card: #ffffff; --ink: #14181d; --muted: #47515d; --line: #dde2e8; --chip: #eceff3;
+    --accent: #c8102e; --accent-ink: #ffffff;
+    --red: #b91c1c; --red-bg: #fde8e8; --amber: #8a4b00; --amber-bg: #fdf0d5; --amber-bar: #d97706;
+    --neutral: #374151; --neutral-bg: #eceff3; --blue: #0b4f7a; --blue-bg: #e3f1fb; --bar: #4b5563; --credit-bar: #2b7bb9;
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #9aa5b1; --line: #2a313a; --soft: #2a1418; --chip: #222932;
+    --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #b6c0cb; --line: #2c333c; --chip: #232a33;
+    --red: #fca5a5; --red-bg: #3a1618; --amber: #fcd34d; --amber-bg: #3a2a0c; --neutral: #d1d8e0; --neutral-bg: #262d36;
+    --blue: #93c5fd; --blue-bg: #13283a; --bar: #9aa5b1; --credit-bar: #5aa2d6;
   } }
-  :root[data-theme="dark"] { --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #9aa5b1; --line: #2a313a; --soft: #2a1418; --chip: #222932; }
+  :root[data-theme="dark"] {
+    --bg: #0f1216; --card: #171b21; --ink: #e8ecf1; --muted: #b6c0cb; --line: #2c333c; --chip: #232a33;
+    --red: #fca5a5; --red-bg: #3a1618; --amber: #fcd34d; --amber-bg: #3a2a0c; --neutral: #d1d8e0; --neutral-bg: #262d36;
+    --blue: #93c5fd; --blue-bg: #13283a; --bar: #9aa5b1; --credit-bar: #5aa2d6;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  header { background: var(--card); border-bottom: 3px solid var(--accent); padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  header h1 { font-size: 20px; margin: 0; letter-spacing: .2px; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-wrap: anywhere; }
+  header { background: var(--card); border-bottom: 3px solid var(--accent); padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; }
   header .sp { flex: 1; }
-  .badge { background: var(--chip); border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--muted); }
-  .badge.admin { background: var(--soft); color: var(--accent); font-weight: 600; }
-  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-  nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-  nav.tabs button { border-radius: 999px; padding: 6px 14px; }
-  nav.tabs button.on { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .card h2 { font-size: 18px; margin: 0 0 10px; }
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-  .tile .k { font-size: 14px; color: var(--muted); }
-  .tile .v { font-size: 26px; font-weight: 700; margin-top: 2px; }
-  .tile .s { font-size: 14px; color: var(--muted); }
-  .tile.bad .v { color: var(--bad); } .tile.warn .v { color: var(--warn); }
+  .badge { background: var(--chip); border-radius: 999px; padding: 4px 12px; font-size: 15px; color: var(--muted); }
+  .badge.admin { background: var(--red-bg); color: var(--red); font-weight: 600; }
+  nav.topnav { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; overflow-x: auto; }
+  nav.topnav .in { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: flex; gap: 4px; }
+  nav.topnav button { border: 0; border-radius: 0; background: transparent; padding: 12px 12px 9px; border-bottom: 3px solid transparent; white-space: nowrap; color: var(--muted); font-weight: 600; flex-shrink: 0; }
+  nav.topnav button.on { color: var(--ink); border-bottom-color: var(--accent); }
+  main { max-width: 1120px; margin: 0 auto; padding: 16px; }
+  .pagehead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 14px; }
+  .pagehead h2 { font-size: 24px; margin: 0; }
+  .pagehead .sp { flex: 1; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; min-width: 0; }
+  .card h3 { font-size: 19px; margin: 0 0 10px; }
+  .card h4 { font-size: 17px; margin: 14px 0 6px; }
+  .grid { display: grid; gap: 16px; margin-bottom: 16px; }
+  .grid > .card { margin-bottom: 0; display: flex; flex-direction: column; }
+  .grid > .card .foot { margin-top: auto; padding-top: 10px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 960px) { .g3 { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .g2 { grid-template-columns: 1fr; } }
+  .muted { color: var(--muted); }
+  .small { font-size: 15px; }
+  .note { color: var(--muted); font-size: 15px; margin: 10px 0 0; }
+  a { color: var(--accent); }
+  input, select, button, textarea { font: inherit; color: inherit; background: var(--card); border: 1px solid #9aa4b0; border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  button { cursor: pointer; border-color: var(--line); background: var(--chip); font-weight: 600; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button.ghost { background: transparent; border-color: #9aa4b0; }
+  button.link { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-weight: 600; }
+  button:disabled { opacity: .6; cursor: default; }
+  a.btn { display: inline-block; border: 1px solid #9aa4b0; border-radius: 8px; padding: 6px 10px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .acts button, .acts a.btn { font-size: 15px; padding: 6px 10px; }
+  label { font-size: 15px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 600; }
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .form .full { grid-column: 1 / -1; }
+  .form input, .form select, .form textarea { width: 100%; }
+  .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; align-items: end; }
+  .filters input, .filters select { width: 100%; }
+  .filters .wide { grid-column: span 2; }
+  @media (max-width: 520px) { .filters .wide { grid-column: auto; } }
+  .err { color: var(--red); font-size: 15px; min-height: 1em; }
+  .ok-msg { color: var(--ink); font-size: 15px; }
+  .login { max-width: 420px; margin: 50px auto; }
+  /* status labels: color + words, always */
+  .status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .st-urgent { background: var(--red-bg); color: var(--red); }
+  .st-review { background: var(--amber-bg); color: var(--amber); }
+  .st-info, .st-ok { background: var(--neutral-bg); color: var(--neutral); }
+  .st-credit { background: var(--blue-bg); color: var(--blue); }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 6px; font-size: 14px; background: var(--chip); color: var(--muted); font-weight: 600; }
+  /* attention list */
+  ul.att { list-style: none; margin: 0; padding: 0; }
+  ul.att li { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 0 12px 12px; border-bottom: 1px solid var(--line); border-left: 4px solid var(--line); margin-bottom: 6px; }
+  ul.att li:last-child { border-bottom: 0; }
+  ul.att li.lv-urgent { border-left-color: var(--red); }
+  ul.att li.lv-review { border-left-color: var(--amber-bar); }
+  ul.att .t { font-weight: 700; font-size: 18px; }
+  ul.att .s { color: var(--muted); font-size: 15px; }
+  ul.att .main { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+  ul.att .main > div { min-width: 0; }
+  ul.att .main .status { flex-shrink: 0; }
+  ul.att button { white-space: nowrap; flex-shrink: 0; }
+  @media (max-width: 600px) { ul.att li { flex-direction: column; align-items: stretch; } ul.att button { align-self: flex-start; } ul.att .main { flex-direction: column; gap: 4px; } }
+  /* key/value lines */
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
+  .kv .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .kv .total { border-top: 1px solid var(--line); padding-top: 6px; }
+  .big { font-size: 26px; font-weight: 800; }
+  .explain { background: var(--blue-bg); color: var(--ink); border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 16px; }
+  /* tables */
   table { width: 100%; border-collapse: collapse; font-size: 16px; }
-  th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
   td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .wrap { overflow-x: auto; }
-  .bar { height: 8px; background: var(--chip); border-radius: 4px; overflow: hidden; min-width: 90px; }
-  .bar i { display: block; height: 100%; background: var(--ok); }
-  .bar.warn i { background: var(--warn); } .bar.bad i { background: var(--bad); }
-  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 14px; background: var(--chip); color: var(--muted); }
-  .pill.bad { background: #fee2e2; color: var(--bad); } .pill.warn { background: #fef3c7; color: var(--warn); } .pill.ok { background: #dcfce7; color: var(--ok); }
-  .pill.credit { background: #e0f2fe; color: #075985; }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-  input, select, button, textarea { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
-  input, select, textarea { min-width: 0; }
-  input.cell { width: 80px; padding: 4px 6px; }
-  input.cell.wide { width: 110px; }
-  button { cursor: pointer; }
-  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
-  button.ghost { background: transparent; }
-  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
-  .row .full { grid-column: 1 / -1; }
-  label { font-size: 14px; color: var(--muted); display: block; margin-bottom: 3px; }
-  .muted { color: var(--muted); font-size: 15px; }
-  .login { max-width: 400px; margin: 60px auto; }
-  .login h2 { margin-top: 0; }
-  .err { color: var(--bad); font-size: 15px; min-height: 18px; }
+  tr.detail > td { background: var(--bg); }
+  tr.sel > td { background: var(--chip); }
+  .sub { display: block; color: var(--muted); font-size: 15px; }
+  .addr { font-weight: 700; }
+  .bar { height: 10px; background: var(--chip); border-radius: 5px; overflow: hidden; min-width: 90px; margin: 4px 0; }
+  .bar i { display: block; height: 100%; background: var(--bar); }
+  .bar.review i { background: var(--amber-bar); } .bar.urgent i { background: var(--red); }
+  table.mini { font-size: 15px; }
+  table.mini th, table.mini td { padding: 6px; }
+  @media (max-width: 700px) {
+    table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+    table.stack thead { display: none; }
+    table.stack > tbody > tr { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; padding: 6px 12px; background: var(--card); }
+    table.stack > tbody > tr.detail { margin-top: -12px; border-top: 0; border-radius: 0 0 10px 10px; background: var(--bg); }
+    table.stack > tbody > tr > td { border: 0; padding: 5px 0; text-align: left; white-space: normal; }
+    table.stack > tbody > tr > td[data-label]::before { content: attr(data-label); display: block; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+    table.stack > tbody > tr.detail > td { background: transparent; }
+    table.stack > tbody > tr > td[data-label=""]::before { display: none; }
+    .tablecard { background: transparent; border: 0; padding: 0; }
+    header h1 { font-size: 18px; }
+    .pagehead h2 { font-size: 22px; }
+  }
+  /* monthly chart (horizontal bars, net per month) */
+  .mrows { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; }
+  .mrows .m { white-space: nowrap; font-size: 15px; }
+  .mrows .b { height: 14px; background: var(--chip); border-radius: 4px; overflow: hidden; }
+  .mrows .b i { display: block; height: 100%; background: var(--bar); }
+  .mrows .b i.cr { background: var(--credit-bar); }
+  .mrows .n { text-align: right; font-variant-numeric: tabular-nums; font-size: 15px; white-space: nowrap; }
+  .mrows .x { grid-column: 2 / 4; margin-top: -6px; font-size: 14px; color: var(--muted); }
+  @media (max-width: 420px) { .mrows .m { font-size: 14px; } }
+  /* searchable job selector */
+  .combo { position: relative; }
+  .combo input { width: 100%; }
+  .combo-list { position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin-top: 2px; background: var(--card); border: 1px solid #9aa4b0; border-radius: 8px; max-height: 300px; overflow-y: auto; box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+  .combo-opt { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding: 8px 10px; font-weight: 400; }
+  .combo-opt:hover, .combo-opt:focus { background: var(--chip); outline: none; }
+  .combo-opt b { display: block; }
+  .combo-opt span { display: block; font-size: 14px; color: var(--muted); }
+  .combo-more { padding: 8px 10px; font-size: 14px; color: var(--muted); }
   details summary { cursor: pointer; font-weight: 600; }
-  .small { font-size: 14px; }
-  a { color: var(--accent); }
-  .drive { text-decoration: none; }
-  .right { text-align: right; }
-  .months { display: grid; grid-auto-flow: column; gap: 8px; align-items: end; height: 120px; }
-  .months div { background: var(--accent); border-radius: 4px 4px 0 0; position: relative; }
-  .months div span { position: absolute; bottom: -40px; left: 0; right: 0; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.2; }
-  .months div b { position: absolute; top: -22px; left: 0; right: 0; font-size: 14px; text-align: center; font-weight: 600; }
-  tr.unassigned td:first-child { border-left: 3px solid var(--warn); }
-  tr.low td:first-child { border-left: 3px solid var(--bad); }
-  .up { color: var(--bad); font-weight: 600; } .down { color: var(--ok); font-weight: 600; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
-  @media (max-width: 640px) { th, td { padding: 7px 5px; font-size: 15px; } header h1 { font-size: 17px; } body { font-size: 16px; } }
+  .panel { border: 2px solid var(--accent); }
+  .dupg { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+  .dupg ul { margin: 6px 0 0; padding-left: 18px; }
+  .dupg li { margin: 4px 0; }
+  .mt { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -81,9 +158,10 @@
   <h1>Ace Fire LA &middot; Materials Tracker</h1>
   <span class="sp"></span>
   <span id="who" class="badge" hidden></span>
-  <button id="refresh" class="ghost" hidden title="Reload data">&#8635;</button>
+  <button id="refresh" class="ghost" hidden title="Reload data">Refresh</button>
   <button id="logout" class="ghost" hidden>Sign out</button>
 </header>
+<nav id="nav" class="topnav" hidden aria-label="Pages"></nav>
 <main id="app"></main>
 
 <script>
@@ -97,7 +175,32 @@ const money3 = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : "$" + N
 const ym = (d) => String(d || "").slice(0, 7);
 const todayPT = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
 const isLow = (i) => i.min_level !== "" && i.min_level != null && i.qty_on_hand !== "" && i.qty_on_hand != null && Number(i.qty_on_hand) <= Number(i.min_level);
-const state = { role: null, name: "", passcode: "", data: null, tab: "purchases", job: "", filters: { q: "", job: "", supplier: "", month: "", unassigned: false }, pq: "", iq: "" };
+const state = { role: null, name: "", passcode: "", data: null, D: null, tab: "overview", job: "", jshow: "", sec: "", panel: "", limit: 60, filters: { q: "", job: "", supplier: "", month: "", show: "" }, pq: "", pshow: "", iq: "", ishow: "" };
+
+// ---------- formatting ----------
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function fmtDate(d) {
+  const s = String(d || "").trim();
+  if (!s) return "";
+  if (s.includes("T")) { const t = new Date(s); if (!isNaN(t)) return t.toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric", year: "numeric" }); }
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${MON[Number(m[2]) - 1]} ${Number(m[3])}, ${m[1]}` : s;
+}
+const fmtMonth = (k) => { const m = String(k || "").match(/^(\d{4})-(\d{2})/); return m ? `${MONTH[Number(m[2]) - 1]} ${m[1]}` : String(k || ""); };
+const fmtMon = (k) => { const m = String(k || "").match(/^(\d{4})-(\d{2})/); return m ? `${MON[Number(m[2]) - 1]} ${m[1]}` : String(k || ""); };
+const plural = (n, one, many) => `${Number(n).toLocaleString("en-US")} ${n === 1 ? one : (many || one + "s")}`;
+const daysAgo = (n) => { const t = new Date(todayPT() + "T12:00:00Z"); t.setUTCDate(t.getUTCDate() - n); return t.toISOString().slice(0, 10); };
+const lvWord = { urgent: "Urgent", review: "Needs review", info: "For info", ok: "OK" };
+
+// ---------- purchase rules (same as weekly-summary.mjs) ----------
+const STOCK_PO = /^(SHOP|STOCK|TRUCK STOCK|SHOP STOCK|PAULA|TESTING)$/i;
+const hasJob = (p) => String(p.job || "").trim() !== "";
+const isQBOnly = (p) => p.source === "QuickBooks card charge";
+const isStockPO = (p) => STOCK_PO.test(String(p.po_ref || "").trim());
+const needsJob = (p) => !hasJob(p) && !isQBOnly(p) && !isStockPO(p);
+const isReturn = (p) => p.type === "credit" || Number(p.total) < 0;
+const isCounted = (i) => String(i.last_counted || "").trim() !== "";
 
 async function api(payload) {
   let text;
@@ -112,16 +215,16 @@ async function api(payload) {
 }
 
 function renderLogin(msg = "") {
-  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = true;
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = true;
   $("#app").innerHTML = `
     <div class="card login">
-      <h2>Sign in</h2>
+      <h3>Sign in</h3>
       <p class="muted">Enter the passcode you were given and your name. Your name is recorded on anything you add.</p>
       <form id="lf">
-        <label>Your name</label><input id="nm" required autocomplete="name" value="${esc(localStorage.getItem("mt_name") || "")}" style="width:100%">
-        <label style="margin-top:8px">Passcode</label><input id="pc" type="password" required autocomplete="off" style="width:100%">
+        <label for="nm">Your name</label><input id="nm" required autocomplete="name" value="${esc(localStorage.getItem("mt_name") || "")}" style="width:100%">
+        <label for="pc" style="margin-top:10px">Passcode</label><input id="pc" type="password" required autocomplete="off" style="width:100%">
         <div class="err" id="le">${esc(msg)}</div>
-        <button class="primary" style="width:100%">Open tracker</button>
+        <button class="primary" style="width:100%;margin-top:6px">Open tracker</button>
       </form>
     </div>`;
   $("#lf").onsubmit = async (e) => {
@@ -145,7 +248,7 @@ async function load() {
     if (err.message === "bad_passcode") { state.data = null; renderLogin("That passcode is not right. Please sign in again."); return; }
     if (state.data) {
       render();
-      $("#app").insertAdjacentHTML("afterbegin", `<p class="err">Could not refresh: ${esc(err.message)} <button id="retry" class="ghost small">Retry</button></p>`);
+      $("#app").insertAdjacentHTML("afterbegin", `<p class="err">Could not refresh: ${esc(err.message)} <button id="retry" class="ghost">Retry</button></p>`);
     } else {
       $("#app").innerHTML = `<div class="card"><p class="err">${esc(err.message)}</p><button id="retry" class="primary">Try again</button></div>`;
     }
@@ -156,182 +259,476 @@ async function load() {
   render();
 }
 
-function render() {
-  const { role, data } = state;
-  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = false;
-  $("#who").textContent = `${state.name} · ${role}`; $("#who").className = "badge " + role;
-  const P = data.purchases || [], J = data.jobs || [], I = data.inventory || [], H = (data.price_history || []).filter((h) => Number(h.unit_price) > 0);
+// ---------- derived data (computed once per render) ----------
+const DIRS = new Set(["N", "S", "E", "W", "NORTH", "SOUTH", "EAST", "WEST"]);
+function jobKey(name) {
+  const s = String(name || "").toUpperCase().replace(/[.,#]/g, " ").replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  let m = s.match(/^Q\s*-?\s*0*(\d{1,5})$/); if (m) return "Q" + m[1];
+  m = s.match(/^0*(\d{2,4})$/); if (m) return "Q" + m[1];        // a bare "326" may be Q326
+  m = s.match(/^(\d{2,6})\s+(.+)$/);                              // street number + first street word (3 letters)
+  if (m) { const w = m[2].split(" ").filter((x) => !DIRS.has(x)); if (w.length) return m[1] + " " + w[0].slice(0, 3); }
+  return s.replace(/\s/g, "");
+}
+
+function derive() {
+  const d = state.data;
+  const P = d.purchases || [], J = d.jobs || [], I = d.inventory || [], PI = d.purchase_items || [], E = d.estimate_items || [];
+  const H = (d.price_history || []).filter((h) => Number(h.unit_price) > 0);
+  const linesBy = {}; PI.forEach((it) => { (linesBy[it.purchase_id] = linesBy[it.purchase_id] || []).push(it); });
+  const countBy = {}; P.forEach((p) => { const k = String(p.job || "").trim(); if (k) countBy[k] = (countBy[k] || 0) + 1; });
+  const jobRow = {}; J.forEach((j) => { const k = String(j.job || "").trim(); if (k) jobRow[k] = j; });
+  const names = [...new Set([...Object.keys(jobRow), ...Object.keys(countBy)])].sort((a, b) => a.localeCompare(b));
+  // months: purchases vs returns/credits vs net
+  const months = {};
+  P.forEach((p) => { const k = ym(p.date); if (!k) return; const s = months[k] = months[k] || { buy: 0, ret: 0, nb: 0, nr: 0 }; const t = Number(p.total || 0); if (isReturn(p)) { s.ret += t; s.nr++; } else { s.buy += t; s.nb++; } });
   const thisMonth = ym(todayPT());
-  const spentMonth = P.filter((p) => ym(p.date) === thisMonth).reduce((a, p) => a + Number(p.total || 0), 0);
-  const unassigned = P.filter((p) => !String(p.job || "").trim());
-  const unTotal = unassigned.reduce((a, p) => a + Number(p.total || 0), 0);
-  const low = I.filter(isLow);
-  const rises = H.filter((h) => Number(h.change_pct) >= 10);
-  let tiles = `
-    <div class="tile"><div class="k">Spent this month</div><div class="v">${money(spentMonth)}</div><div class="s">${P.filter((p) => ym(p.date) === thisMonth).length} purchases</div></div>
-    <div class="tile ${unassigned.length ? "warn" : ""}"><div class="k">Not assigned to a job</div><div class="v">${unassigned.length}</div><div class="s">${money(unTotal)}</div></div>
-    <div class="tile ${rises.length ? "warn" : ""}"><div class="k">Price increases of 10%+</div><div class="v">${rises.length}</div><div class="s">${H.filter((h) => Number(h.change_pct) > 0 && Number(h.change_pct) < 10).length} smaller increases</div></div>
-    <div class="tile ${low.length ? "bad" : ""}"><div class="k">Inventory at minimum</div><div class="v">${low.length}</div><div class="s">${I.length} items tracked</div></div>`;
-  if (role === "admin") {
-    const over = J.filter((j) => j.materials_budget && j.actual > Number(j.materials_budget));
-    const near = J.filter((j) => j.materials_budget && j.pct >= 85 && j.actual <= Number(j.materials_budget));
-    tiles += `
-    <div class="tile ${over.length ? "bad" : ""}"><div class="k">Jobs over budget</div><div class="v">${over.length}</div><div class="s">${near.length} at 85% or more</div></div>
-    <div class="tile"><div class="k">Jobs tracked</div><div class="v">${J.length}</div><div class="s">${J.filter((j) => !j.materials_budget).length} without a budget</div></div>`;
-  }
-  const tabs = [["purchases", "Purchases"], ["prices", "Price history"], ["inventory", "Inventory"]];
-  if (role === "admin") tabs.unshift(["jobs", "Jobs & budgets"]);
-  if (!tabs.some((t) => t[0] === state.tab)) state.tab = tabs[0][0];
-  let html = `<div class="tiles">${tiles}</div><nav class="tabs">${tabs.map((t) => `<button data-tab="${t[0]}" class="${state.tab === t[0] ? "on" : ""}">${t[1]}</button>`).join("")}</nav>`;
-  if (state.tab === "jobs") html += budgetSection(J) + jobDetailSection(J) + monthsSection(P) + jobSection();
-  if (state.tab === "purchases") html += purchasesSection(P, J) + addSection(J);
-  if (state.tab === "prices") html += priceSection(H);
-  if (state.tab === "inventory") html += inventorySection(I);
+  // purchases without a job
+  const noJob = P.filter((p) => !hasJob(p));
+  const need = P.filter(needsJob), stockPO = noJob.filter((p) => !isQBOnly(p) && isStockPO(p)), qbOnly = noJob.filter(isQBOnly);
+  // inventory
+  const bought = {};
+  PI.forEach((it) => { const k = String(it.part_no || "").trim(); if (!k || !(Number(it.qty) > 0)) return; const b = bought[k] = bought[k] || { qty: 0, unit: it.unit, first: it.date, n: 0 }; b.qty += Number(it.qty); b.n++; if (String(it.date) < String(b.first)) b.first = it.date; });
+  const inv = I.map((i) => ({ i, st: invStatus(i), b: bought[String(i.part_no || "").trim()] }));
+  // prices: latest buy per supplier + part
+  const latest = {};
+  H.forEach((h) => { const k = h.supplier + "|" + h.part_no; if (!latest[k] || String(h.date) > String(latest[k].date)) latest[k] = h; });
+  const priceRows = Object.values(latest);
+  const d60 = daysAgo(60);
+  const rises60 = priceRows.filter((h) => Number(h.change_pct) >= 10 && String(h.date) >= d60);
+  // possible duplicate job names
+  const parent = {}; const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+  const byKey = {};
+  names.forEach((n) => {
+    parent[n] = n;
+    const keys = [jobKey(n)]; if (jobRow[n] && jobRow[n].address) keys.push(jobKey(jobRow[n].address));
+    keys.filter(Boolean).forEach((k) => { if (byKey[k]) parent[find(n)] = find(byKey[k]); else byKey[k] = n; });
+  });
+  const groups = {}; names.forEach((n) => { (groups[find(n)] = groups[find(n)] || []).push(n); });
+  const dups = Object.values(groups).filter((g) => g.length > 1).map((g) => g.sort((a, b) => (countBy[b] || 0) - (countBy[a] || 0) || a.localeCompare(b)));
+  return { P, J, I, PI, E, H, linesBy, countBy, jobRow, names, months, thisMonth, noJob, need, stockPO, qbOnly, inv, bought, priceRows, rises60, dups };
+}
+
+function invStatus(i) {
+  if (!isCounted(i)) return { key: "notcounted", label: "Not counted", lv: "review" };
+  if (i.qty_on_hand !== "" && i.qty_on_hand != null && Number(i.qty_on_hand) === 0) return { key: "zero", label: "0 on hand", lv: "urgent" };
+  if (isLow(i)) return { key: "low", label: "Low stock", lv: "urgent" };
+  if (i.min_level === "" || i.min_level == null) return { key: "nomin", label: "Counted, reorder level not set", lv: "info" };
+  return { key: "ok", label: "In stock", lv: "ok" };
+}
+
+function budgetState(j) {
+  const b = Number(j.materials_budget || 0);
+  if (!b) return { key: "none", label: "Budget not set", lv: "review" };
+  if (j.actual > b) return { key: "over", label: "Over budget", lv: "urgent" };
+  if (j.pct >= 85) return { key: "near", label: "Near budget", lv: "review" };
+  return { key: "within", label: "Within budget", lv: "ok" };
+}
+const remainingOf = (j) => j.variance != null && j.variance !== "" ? Number(j.variance) : Number(j.materials_budget || 0) - Number(j.actual || 0);
+const st = (lv, label) => `<span class="status st-${lv}">${esc(label)}</span>`;
+function jobTitle(name) {
+  const j = state.D.jobRow[name];
+  const addr = j && String(j.address || "").trim();
+  return { main: addr || name, sub: addr && addr.toLowerCase() !== String(name).toLowerCase() && !addr.toLowerCase().startsWith(String(name).toLowerCase()) ? name : "" };
+}
+function budgetLine(j) {
+  const r = remainingOf(j);
+  return r >= 0 ? `${money(r)} remaining · ${j.pct}% of budget used` : `${money(-r)} over budget · ${j.pct}% of budget used`;
+}
+
+// ---------- navigation (hash keeps filters, so a link opens a filtered list) ----------
+function hashFor() {
+  const p = new URLSearchParams();
+  const set = (k, v) => { if (v) p.set(k, v); };
+  if (state.tab === "purchases") { const f = state.filters; set("show", f.show); set("job", f.job); set("supplier", f.supplier); set("month", f.month); set("q", f.q); }
+  if (state.tab === "inventory") { set("show", state.ishow); set("q", state.iq); }
+  if (state.tab === "prices") { set("show", state.pshow); set("q", state.pq); }
+  if (state.tab === "jobs") { set("show", state.jshow); set("job", state.job); set("sec", state.sec); }
+  const qs = p.toString();
+  return "#/" + state.tab + (qs ? "?" + qs : "");
+}
+function applyHash(h) {
+  const m = String(h || "").replace(/^#\/?/, "");
+  if (!m) return;
+  const [tab, qs] = m.split("?"); const p = new URLSearchParams(qs || ""); const g = (k) => p.get(k) || "";
+  state.tab = tab; state.panel = "";
+  if (tab === "purchases") { state.filters = { q: g("q"), job: g("job"), supplier: g("supplier"), month: g("month"), show: g("show") }; state.limit = 60; }
+  if (tab === "inventory") { state.ishow = g("show"); state.iq = g("q"); }
+  if (tab === "prices") { state.pshow = g("show"); state.pq = g("q"); state.limit = 60; }
+  if (tab === "jobs") { state.jshow = g("show"); state.job = g("job"); state.sec = g("sec"); }
+}
+function navigate(hash) {
+  applyHash(hash);
+  try { history.pushState(null, "", hash); } catch {}
+  render(); window.scrollTo(0, 0); afterNav();
+}
+function syncHash() { try { history.replaceState(null, "", hashFor()); } catch {} }
+function afterNav() {
+  const t = state.sec ? document.getElementById(state.sec) : state.tab === "jobs" && state.job ? $("tr.sel") : null;
+  if (t) t.scrollIntoView({ block: "start" });
+}
+
+function render() {
+  const admin = state.role === "admin";
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = false;
+  $("#who").textContent = `${state.name} · ${state.role}`; $("#who").className = "badge " + state.role;
+  const D = state.D = derive();
+  const tabs = [["overview", "Overview"], ["jobs", admin ? "Jobs & Budgets" : "Jobs"], ["purchases", "Purchases"], ["inventory", "Inventory"], ["prices", "Price History"]];
+  if (!tabs.some((t) => t[0] === state.tab)) state.tab = "overview";
+  $("#nav").innerHTML = `<div class="in">${tabs.map((t) => `<button type="button" data-go="#/${t[0]}" class="${state.tab === t[0] ? "on" : ""}" ${state.tab === t[0] ? 'aria-current="page"' : ""}>${t[1]}</button>`).join("")}</div>`;
+  let html = "";
+  if (state.tab === "overview") html = overviewPage(D);
+  if (state.tab === "jobs") html = admin ? jobsAdminPage(D) : jobsStaffPage(D);
+  if (state.tab === "purchases") html = purchasesPage(D);
+  if (state.tab === "inventory") html = inventoryPage(D);
+  if (state.tab === "prices") html = pricesPage(D);
   $("#app").innerHTML = html;
+  syncHash();
   wire();
 }
 
-// ---------- admin: jobs ----------
-function budgetSection(J) {
-  const rows = J.slice().sort((a, b) => (b.pct || 0) - (a.pct || 0)).map((j) => {
-    const b = Number(j.materials_budget || 0);
-    const cls = !b ? "" : j.pct > 100 ? "bad" : j.pct >= 85 ? "warn" : "ok";
-    const pill = !b ? `<span class="pill">no budget</span>` : j.pct > 100 ? `<span class="pill bad">OVER by ${money(j.actual - b)}</span>` : j.pct >= 85 ? `<span class="pill warn">${j.pct}%</span>` : `<span class="pill ok">${j.pct}%</span>`;
-    return `<tr>
-      <td><a href="#" class="pick-job" data-job="${esc(j.job)}"><b>${esc(j.job)}</b></a><div class="small muted">${esc(j.address)}${j.customer ? " · " + esc(j.customer) : ""}</div></td>
-      <td class="num">${money(j.quote_total)}</td>
-      <td class="num">${money(j.materials_budget)}${j.estimate_total != null && Math.abs(j.estimate_total - b) > 0.5 ? `<div class="small muted">lines: ${money(j.estimate_total)}</div>` : ""}</td>
-      <td class="num">${money(j.actual)}</td>
-      <td class="num">${b ? money(b - j.actual) : ""}</td>
-      <td><div class="bar ${cls}"><i style="width:${Math.min(100, j.pct || 0)}%"></i></div></td>
-      <td>${pill} <span class="pill">${esc(j.status || "open")}</span></td>
-      <td><button class="ghost small edit-job" data-job="${esc(j.job)}">edit</button></td>
-    </tr>`;
-  }).join("");
-  return `<div class="card"><h2>Materials budget vs actual, by job</h2>
-    <div class="wrap"><table><thead><tr><th>Job</th><th class="num">Quote</th><th class="num">Mat. budget</th><th class="num">Spent</th><th class="num">Left</th><th>Used</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="8" class="muted">No jobs yet. Add one below with its materials budget.</td></tr>`}</tbody></table></div>
-    <p class="muted small">Spent = all purchases whose job matches. Credits (returns) reduce it. Purchases with no job are not counted here. Click a job to see its estimate lines against what was bought.</p></div>`;
+// ---------- overview ----------
+function attentionItems(D) {
+  const admin = state.role === "admin", out = [];
+  const add = (lv, text, sub, label, go) => out.push({ lv, text, sub, label, go });
+  if (admin) {
+    const withB = D.J.filter((j) => Number(j.materials_budget || 0));
+    const over = withB.filter((j) => budgetState(j).key === "over"), near = withB.filter((j) => budgetState(j).key === "near");
+    const none = D.J.filter((j) => !Number(j.materials_budget || 0));
+    const one = (arr) => arr.length === 1 ? "#/jobs?job=" + encodeURIComponent(arr[0].job) : "";
+    if (over.length) add("urgent", `${plural(over.length, "job is", "jobs are")} over the materials budget`, over.map((j) => `${esc(jobTitle(j.job).main)}: ${esc(budgetLine(j))}`).join("<br>"), over.length === 1 ? "Review job" : "Review jobs", one(over) || "#/jobs?show=over");
+    if (near.length) add("review", `${plural(near.length, "job is", "jobs are")} near the materials budget (85% or more used)`, near.map((j) => `${esc(jobTitle(j.job).main)} · ${esc(j.job)}: ${esc(budgetLine(j))}`).join("<br>"), near.length === 1 ? "Review job" : "Review jobs", one(near) || "#/jobs?show=near");
+    if (none.length) add("review", `${plural(none.length, "tracked job needs", "tracked jobs need")} a budget`, none.map((j) => esc(jobTitle(j.job).main)).join(" · "), "Set budgets", "#/jobs?show=none");
+  }
+  if (D.need.length) add("review", `${plural(D.need.length, "purchase needs", "purchases need")} a job assigned`, `${(() => { const t = D.need.reduce((a, p) => a + Number(p.total || 0), 0), r = D.need.filter(isReturn).length; return r === D.need.length ? `${D.need.length === 1 ? "It is a return/credit" : "All are returns/credits"} (${money(-t)} credit), so they lower job spending once assigned.` : `${money(t)} in total${r ? `, including ${plural(r, "return/credit", "returns/credits")}` : ""}.`; })()} Not counted here: ${plural(D.stockPO.length, "stock order")} (PO marked shop, stock, truck stock, testing or Paula) and ${plural(D.qbOnly.length, "QuickBooks card charge")} with no ticket on file.`, "Review purchases", "#/purchases?show=needs");
+  const lowC = D.inv.filter((x) => x.st.key === "low" || x.st.key === "zero");
+  if (lowC.length) add("urgent", `${plural(lowC.length, "item is", "items are")} low or out of stock (confirmed count)`, lowC.slice(0, 4).map((x) => esc(x.i.item)).join(" · ") + (lowC.length > 4 ? " ..." : ""), "View low stock", "#/inventory?show=low");
+  const nc = D.inv.filter((x) => x.st.key === "notcounted");
+  if (nc.length) {
+    const noMin = D.inv.filter((x) => x.i.min_level === "" || x.i.min_level == null).length;
+    add("review", `${plural(nc.length, "inventory item needs", "inventory items need")} a count`, `No confirmed count yet, so their stock level is unknown.${noMin ? ` Reorder level is not set on ${plural(noMin, "item")}.` : ""}`, "Count items", "#/inventory?show=notcounted");
+  }
+  if (admin && D.rises60.length) add("review", `${plural(D.rises60.length, "part", "parts")} went up 10% or more since the previous buy (bought in the last 60 days)`, D.rises60.slice(0, 3).map((h) => `${esc(h.description)} +${esc(h.change_pct)}%`).join(" · "), "Review prices", "#/prices?show=rises60");
+  if (D.dups.length) add("review", `${plural(D.dups.length, "set", "sets")} of job names look like the same job typed differently`, D.dups.slice(0, 2).map((g) => g.map(esc).join(" / ")).join("<br>"), "Review job names", "#/jobs?sec=dups");
+  return out;
 }
 
-function jobDetailSection(J) {
-  const jobs = J.map((j) => j.job).filter(Boolean).sort();
-  if (!state.job && jobs.length) state.job = jobs[0];
-  const j = J.find((x) => x.job === state.job) || {};
-  const E = (state.data.estimate_items || []).filter((e) => String(e.job).trim() === state.job);
-  const pids = new Set((state.data.purchases || []).filter((p) => String(p.job).trim() === state.job).map((p) => p.id));
-  const B = (state.data.purchase_items || []).filter((it) => pids.has(it.purchase_id)).sort((a, b) => String(a.date).localeCompare(String(b.date)));
-  const eSum = E.reduce((a, e) => a + Number(e.line_total || 0), 0), bSum = B.reduce((a, it) => a + Number(it.ext_price || 0), 0);
-  const eRows = E.map((e) => `<tr><td>${esc(e.item)}<div class="small muted">${esc(e.source)}${e.notes ? " · " + esc(e.notes) : ""}</div></td><td class="num">${esc(e.qty)} ${esc(e.unit)}</td><td class="num">${money(e.unit_cost)}</td><td class="num">${money(e.line_total)}</td></tr>`).join("");
-  const bRows = B.map((it) => `<tr><td style="white-space:nowrap">${esc(it.date)}</td><td>${esc(it.description)}<div class="small muted">${esc(it.part_no)}${it.original_sale ? " · return of " + esc(it.original_sale) : ""}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("");
-  return `<div class="card"><h2>Job detail: estimate vs bought
-      <select id="pickjob" style="margin-left:8px">${jobs.map((x) => `<option ${x === state.job ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></h2>
-    <p class="muted small">${esc(j.address || "")}${j.customer ? " · " + esc(j.customer) : ""} · budget ${money(j.materials_budget)} · spent ${money(j.actual)} (line items ${money(bSum)}, before tax)</p>
-    <div class="two">
-      <div><h2>Estimate lines <span class="muted small">${money(eSum)}</span></h2>
-        <div class="wrap"><table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>${eRows || `<tr><td colspan="4" class="muted">No estimate lines. Add them below; the materials budget becomes their sum.</td></tr>`}</tbody></table></div>
-        <details style="margin-top:8px"><summary class="small">Add an estimate line</summary>
-        <form id="estf" class="row" style="margin-top:8px">
-          <input type="hidden" name="job" value="${esc(state.job)}">
-          <div class="full"><label>Item</label><input name="item" required placeholder="6in gate valve, flanged"></div>
-          <div><label>Qty</label><input name="qty" type="number" step="0.01" value="1" required></div>
-          <div><label>Unit</label><input name="unit" value="ea"></div>
-          <div><label>Unit cost</label><input name="unit_cost" type="number" step="0.01" required></div>
-          <div><label>Source</label><input name="source" placeholder="Five Star quote, catalog, estimate"></div>
-          <div class="full"><label>Notes</label><input name="notes"></div>
-          <div class="full right"><span id="esterr" class="err"></span> <button class="primary">Add line</button></div>
-        </form></details></div>
-      <div><h2>Bought <span class="muted small">${money(bSum)} before tax</span></h2>
-        <div class="wrap"><table><thead><tr><th>Date</th><th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Ext</th></tr></thead><tbody>${bRows || `<tr><td colspan="5" class="muted">Nothing bought for this job yet.</td></tr>`}</tbody></table></div></div>
-    </div></div>`;
+function overviewPage(D) {
+  const admin = state.role === "admin";
+  const items = attentionItems(D);
+  const att = `<div class="card"><h3>Needs your attention</h3>${items.length ? `<ul class="att">${items.map((x) => `<li class="lv-${x.lv}"><div class="main">${st(x.lv, lvWord[x.lv])}<div><div class="t">${esc(x.text)}</div>${x.sub ? `<div class="s">${x.sub}</div>` : ""}</div></div><button type="button" class="${x.lv === "urgent" ? "primary" : "ghost"}" data-go="${esc(x.go)}">${esc(x.label)}</button></li>`).join("")}</ul>` : `<p class="muted">Nothing needs attention right now.</p>`}</div>`;
+  const cards = [monthCard(D)]; if (admin) cards.push(budgetCard(D)); cards.push(inventoryCard(D), priceCard(D));
+  return `<div class="pagehead"><h2>Overview</h2><span class="muted">${esc(fmtDate(todayPT()))}</span></div>${att}<div class="grid ${cards.length % 2 ? "g3" : "g2"}">${cards.join("")}</div>${chartCard(D)}`;
 }
 
-function monthsSection(P) {
-  const by = {};
-  P.forEach((p) => { const k = ym(p.date); if (k) by[k] = (by[k] || 0) + Number(p.total || 0); });
-  const all = Object.keys(by).sort();
+function monthCard(D) {
+  const k = D.thisMonth, s = D.months[k] || { buy: 0, ret: 0, nb: 0, nr: 0 }, net = s.buy + s.ret;
+  const prevK = ym(daysAgo(Number(todayPT().slice(8, 10)))), ps = D.months[prevK];
+  const netTxt = net < 0 ? `${money(-net)} credit` : money(net);
+  const why = net < 0 ? `<div class="explain">Returns (${money(-s.ret)}) were larger than new purchases (${money(s.buy)}) this month, so net spending is a ${money(-net)} credit.</div>` : "";
+  return `<div class="card"><h3>${esc(fmtMonth(k))} <span class="muted small">(month to date)</span></h3>
+    <div class="kv">
+      <div>Purchases <span class="sub">${plural(s.nb, "purchase")}</span></div><div class="v">${money(s.buy)}</div>
+      <div>Returns / credits <span class="sub">${plural(s.nr, "return/credit", "returns/credits")}</span></div><div class="v">${s.ret ? "&minus;" + money(-s.ret) : money(0)}</div>
+      <div class="total"><b>Net spending</b></div><div class="v total big">${esc(netTxt)}</div>
+    </div>${why}
+    ${ps ? `<p class="note">${esc(fmtMonth(prevK))}: net ${esc(ps.buy + ps.ret < 0 ? money(-(ps.buy + ps.ret)) + " credit" : money(ps.buy + ps.ret))} (${plural(ps.nb, "purchase")}, ${plural(ps.nr, "return/credit", "returns/credits")}).</p>` : ""}
+    <div class="foot"><button type="button" class="ghost" data-go="#/purchases?month=${esc(k)}">View this month's purchases</button></div></div>`;
+}
+
+function budgetCard(D) {
+  const withB = D.J.filter((j) => Number(j.materials_budget || 0)).sort((a, b) => (b.pct || 0) - (a.pct || 0));
+  const none = D.J.length - withB.length;
+  const rows = withB.slice(0, 5).map((j) => { const bs = budgetState(j), t = jobTitle(j.job); return `<li style="margin-bottom:8px"><span class="addr">${esc(t.main)}</span> · ${esc(j.job)}<br><span class="small">${esc(budgetLine(j))}</span> ${st(bs.lv, bs.label)}</li>`; }).join("");
+  return `<div class="card"><h3>Materials budgets</h3>
+    ${rows ? `<ul style="padding-left:18px;margin:0">${rows}</ul>` : `<p class="muted">No job has a materials budget yet.</p>`}
+    ${none ? `<p class="note">${plural(none, "tracked job has", "tracked jobs have")} no budget set.</p>` : ""}
+    <div class="foot"><button type="button" class="ghost" data-go="#/jobs">Open Jobs &amp; Budgets</button></div></div>`;
+}
+
+function inventoryCard(D) {
+  const c = (k) => D.inv.filter((x) => x.st.key === k).length;
+  const low = c("low") + c("zero"), nc = c("notcounted"), counted = D.inv.length - nc;
+  const noMin = D.inv.filter((x) => x.i.min_level === "" || x.i.min_level == null).length;
+  return `<div class="card"><h3>Inventory</h3>
+    <div class="kv">
+      <div>Low or out of stock <span class="sub">confirmed by a count</span></div><div class="v">${low} ${low ? st("urgent", "Urgent") : ""}</div>
+      <div>Not counted yet <span class="sub">stock level unknown</span></div><div class="v">${nc} ${nc ? st("review", "Needs count") : ""}</div>
+      <div>Counted</div><div class="v">${counted} of ${D.inv.length}</div>
+      <div>Reorder level not set</div><div class="v">${noMin}</div>
+    </div>
+    <div class="foot acts">${low ? `<button type="button" class="ghost" data-go="#/inventory?show=low">View low stock</button>` : ""}${nc ? `<button type="button" class="ghost" data-go="#/inventory?show=notcounted">Items to count</button>` : ""}<button type="button" class="ghost" data-go="#/inventory">Open Inventory</button></div></div>`;
+}
+
+function priceCard(D) {
+  const r = D.rises60.slice().sort((a, b) => Number(b.change_pct) - Number(a.change_pct));
+  return `<div class="card"><h3>Price changes</h3>
+    <p style="margin:0 0 8px"><b>${plural(r.length, "part")}</b> went up 10% or more at the last buy (last 60 days).</p>
+    ${r.length ? `<ul style="padding-left:18px;margin:0">${r.slice(0, 3).map((h) => `<li>${esc(h.description)}: ${money3(h.prev_price)} to <b>${money3(h.unit_price)}</b> (+${esc(h.change_pct)}%) on ${esc(fmtDate(h.date))}</li>`).join("")}</ul>` : ""}
+    <div class="foot"><button type="button" class="ghost" data-go="#/prices${r.length ? "?show=rises60" : ""}">Open Price History</button></div></div>`;
+}
+
+function chartCard(D) {
+  const all = Object.keys(D.months).sort();
   if (!all.length) return "";
-  const keys = all.slice(-24);
-  const max = Math.max(...keys.map((k) => by[k]), 1);
-  const year = (k) => k.slice(0, 4), mon = (k) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(k.slice(5, 7)) - 1];
-  const yearTotals = {}; all.forEach((k) => { yearTotals[year(k)] = (yearTotals[year(k)] || 0) + by[k]; });
-  const label = (k, i) => (i === 0 || mon(k) === "Jan") ? `${mon(k)}<br>${year(k)}` : mon(k);
-  return `<div class="card"><h2>Spend by month <span class="muted small">(${keys.length} months · ${Object.entries(yearTotals).map(([y, v]) => `${y}: ${money(v)}`).join(" · ")})</span></h2>
-    <div class="wrap"><div class="months" style="padding:26px 0 50px;min-width:${keys.length * 52}px">${keys.map((k, i) => `<div style="height:${Math.max(3, Math.round((by[k] / max) * 100))}%" title="${esc(k)}: ${money(by[k])}"><b>${by[k] >= 1000 ? "$" + (by[k] / 1000).toFixed(1) + "k" : money(by[k]).replace(/\.\d\d$/, "")}</b><span>${label(k, i)}</span></div>`).join("")}</div></div>
-    <p class="muted small">All Five Star purchases, including ship tickets from email and card charges from QuickBooks that have no ticket on file. Returns reduce the month.</p></div>`;
+  const keys = all.slice(-12).reverse(), older = all.slice(0, -12).reverse();
+  const net = (k) => D.months[k].buy + D.months[k].ret;
+  const max = Math.max(...all.map((k) => Math.abs(net(k))), 1);
+  const years = {}; all.forEach((k) => { years[k.slice(0, 4)] = (years[k.slice(0, 4)] || 0) + net(k); });
+  const row = (k) => { const n = net(k), s = D.months[k]; return `<div class="m">${esc(fmtMon(k))}</div><div class="b" title="${esc(fmtMonth(k))}"><i class="${n < 0 ? "cr" : ""}" style="width:${Math.max(1, Math.round((Math.abs(n) / max) * 100))}%"></i></div><div class="n">${n < 0 ? esc(money(-n)) + " credit" : esc(money(n))}</div>${s.nr ? `<div class="x">bought ${esc(money(s.buy))} · returned ${esc(money(-s.ret))}</div>` : ""}`; };
+  return `<div class="card"><h3>Net spending by month</h3>
+    <p class="note" style="margin:0 0 10px">Net = purchases minus returns/credits. Year totals (net): ${Object.entries(years).map(([y, v]) => `${esc(y)}: ${esc(money(v))}`).join(" · ")}</p>
+    <div class="mrows">${keys.map(row).join("")}</div>
+    ${older.length ? `<details class="mt"><summary>Earlier months (${older.length})</summary><div class="mrows mt">${older.map(row).join("")}</div></details>` : ""}
+    <p class="note">All Five Star purchases, including ship tickets from email and card charges from QuickBooks that have no ticket on file. A blue bar is a month where returns were larger than purchases.</p></div>`;
 }
 
-function jobSection() {
-  return `<div class="card"><details id="jobdet"><summary>Add or edit a job (admin)</summary>
-    <form id="jobf" class="row" style="margin-top:10px">
-      <div><label>Job (quote #)</label><input name="job" required placeholder="Q1479"></div>
-      <div><label>Address</label><input name="address"></div>
-      <div><label>Customer</label><input name="customer"></div>
-      <div><label>Quote total</label><input name="quote_total" type="number" step="0.01"></div>
-      <div><label>Materials budget</label><input name="materials_budget" type="number" step="0.01"></div>
-      <div><label>Labor days</label><input name="labor_days" type="number" step="0.5"></div>
-      <div><label>Status</label><select name="status"><option>open</option><option>in progress</option><option>closed</option></select></div>
-      <div class="full"><label>Notes</label><input name="notes"></div>
-      <div class="full right"><span id="joberr" class="err"></span> <button class="primary">Save job</button></div>
-    </form><p class="muted small">Budgets, estimate lines and quote totals are visible to admins only. Staff see the job name and address. A budget typed here is replaced by the sum of the estimate lines once any exist.</p></details></div>`;
+// ---------- jobs (admin) ----------
+function jobsAdminPage(D) {
+  const show = state.jshow;
+  const rows = D.J.filter((j) => !show || budgetState(j).key === show).sort((a, b) => {
+    const r = (j) => ({ over: 0, near: 1, none: 2, within: 3 }[budgetState(j).key]);
+    return r(a) - r(b) || (b.pct || 0) - (a.pct || 0) || String(a.job).localeCompare(String(b.job));
+  });
+  const body = rows.map((j) => {
+    const name = String(j.job || "").trim(), b = Number(j.materials_budget || 0), bs = budgetState(j), t = jobTitle(name), sel = state.job === name;
+    const status = b
+      ? `<div class="bar ${bs.lv}"><i style="width:${Math.min(100, j.pct || 0)}%"></i></div><div class="small">${esc(j.pct)}% of budget used</div>${st(bs.lv, bs.label)}`
+      : `${st(bs.lv, bs.label)}<div class="mt"><button type="button" class="primary" data-setb="${esc(name)}">Set budget</button></div>
+         <form class="setb mt" data-job="${esc(name)}" hidden><label>Materials budget ($)<input type="number" step="0.01" min="0" required style="width:140px;display:block;margin-top:3px"></label> <button class="primary">Save</button> <button type="button" class="ghost" data-cancel>Cancel</button><div class="err"></div></form>`;
+    const r = remainingOf(j);
+    return `<tr class="${sel ? "sel" : ""}">
+      <td data-label="Job"><span class="addr">${esc(t.main)}</span><span class="sub">${t.sub ? esc(t.sub) + " · " : ""}${esc(j.customer || "")}</span><span class="tag">${esc(j.status || "open")}</span></td>
+      <td data-label="Materials budget" class="num">${b ? money(b) : `<span class="muted">Not set</span>`}${j.estimate_total != null && Math.abs(j.estimate_total - b) > 0.5 ? `<span class="sub">lines: ${money(j.estimate_total)}</span>` : ""}</td>
+      <td data-label="Net materials spending" class="num">${money(j.actual)}</td>
+      <td data-label="Budget remaining" class="num">${b ? (r >= 0 ? money(r) : `<b>${money(-r)} over</b>`) : `<span class="muted">-</span>`}</td>
+      <td data-label="Budget status">${status}</td>
+      <td data-label=""><button type="button" class="ghost" data-go="#/jobs?${new URLSearchParams(sel ? (show ? { show } : {}) : (show ? { show, job: name } : { job: name })).toString()}">${sel ? "Hide details" : "View details"}</button></td>
+    </tr>${sel ? `<tr class="detail"><td colspan="6">${jobDetail(D, j)}</td></tr>` : ""}`;
+  }).join("");
+  const opts = [["", "All jobs"], ["over", "Over budget"], ["near", "Near budget (85%+)"], ["none", "Budget not set"], ["within", "Within budget"]];
+  return `<div class="pagehead"><h2>Jobs &amp; Budgets</h2><span class="sp"></span><button type="button" class="primary" data-panel="job">Add job</button></div>
+    ${state.panel === "job" ? jobForm() : ""}
+    <div class="card">
+      <div class="filters" style="margin-bottom:10px"><div><label for="jshow">Budget status</label><select id="jshow">${opts.map((o) => `<option value="${o[0]}" ${o[0] === show ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div></div>
+      <table class="stack"><thead><tr><th>Job</th><th class="num">Materials budget</th><th class="num">Net materials spending</th><th class="num">Budget remaining</th><th>Budget status</th><th></th></tr></thead>
+      <tbody>${body || `<tr><td colspan="6" class="muted">No jobs match.</td></tr>`}</tbody></table>
+      <p class="note">Net materials spending = all purchases assigned to the job, minus returns/credits. Purchases with no job are not counted. The small grey label under each job is its work status from the Jobs list; the coloured label is the budget status.</p>
+    </div>${dupCard(D)}`;
+}
+
+function jobDetail(D, j) {
+  const name = String(j.job || "").trim();
+  const E = D.E.filter((e) => String(e.job).trim() === name);
+  const Pj = D.P.filter((p) => String(p.job || "").trim() === name).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const pids = new Set(Pj.map((p) => p.id));
+  const B = D.PI.filter((it) => pids.has(it.purchase_id)).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const eSum = E.reduce((a, e) => a + Number(e.line_total || 0), 0), bSum = B.reduce((a, it) => a + Number(it.ext_price || 0), 0);
+  const eRows = E.map((e) => `<tr><td>${esc(e.item)}<span class="sub">${esc(e.source)}${e.notes ? " · " + esc(e.notes) : ""}</span></td><td class="num">${esc(e.qty)} ${esc(e.unit)}</td><td class="num">${money(e.unit_cost)}</td><td class="num">${money(e.line_total)}</td></tr>`).join("");
+  const bRows = B.map((it) => `<tr><td style="white-space:nowrap">${esc(fmtDate(it.date))}</td><td>${esc(it.description)}<span class="sub">${esc(it.part_no)}${it.original_sale ? " · return of " + esc(it.original_sale) : ""}</span></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("");
+  return `<div>
+    <p style="margin:0 0 6px"><b>Quote total:</b> ${money(j.quote_total) || "not set"} · <b>Labor days:</b> ${esc(j.labor_days || "-")} · <b>Purchases:</b> ${Pj.length} (net ${money(j.actual)})</p>
+    ${j.notes ? `<p class="small muted" style="margin:0 0 6px">${esc(j.notes)}</p>` : ""}
+    <div class="acts"><button type="button" class="ghost" data-editjob="${esc(name)}">Edit job</button><button type="button" class="ghost" data-go="#/purchases?job=${esc(encodeURIComponent(name))}">View purchases</button></div>
+    <h4>Estimate lines <span class="muted small">${money(eSum)}</span></h4>
+    <div class="wrap"><table class="mini"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit cost</th><th class="num">Total</th></tr></thead><tbody>${eRows || `<tr><td colspan="4" class="muted">No estimate lines. Add them below; the materials budget becomes their sum.</td></tr>`}</tbody></table></div>
+    <details class="mt"><summary>Add an estimate line</summary>
+      <form id="estf" class="form mt">
+        <input type="hidden" name="job" value="${esc(name)}">
+        <div class="full"><label for="ef-item">Item</label><input id="ef-item" name="item" required placeholder="6in gate valve, flanged"></div>
+        <div><label for="ef-qty">Qty</label><input id="ef-qty" name="qty" type="number" step="0.01" value="1" required></div>
+        <div><label for="ef-unit">Unit</label><input id="ef-unit" name="unit" value="ea"></div>
+        <div><label for="ef-cost">Unit cost</label><input id="ef-cost" name="unit_cost" type="number" step="0.01" required></div>
+        <div><label for="ef-src">Source</label><input id="ef-src" name="source" placeholder="Five Star quote, catalog, estimate"></div>
+        <div class="full"><label for="ef-notes">Notes</label><input id="ef-notes" name="notes"></div>
+        <div class="full"><button class="primary">Add line</button> <span id="esterr" class="err"></span></div>
+      </form></details>
+    <h4>Bought for this job <span class="muted small">${money(bSum)} in line items, before tax</span></h4>
+    <div class="wrap"><table class="mini"><thead><tr><th>Date</th><th>Item</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Ext</th></tr></thead><tbody>${bRows || `<tr><td colspan="5" class="muted">No line items for this job yet.</td></tr>`}</tbody></table></div>
+  </div>`;
+}
+
+function jobForm() {
+  return `<div class="card panel"><h3>Add or edit a job</h3>
+    <form id="jobf" class="form">
+      <div><label for="jf-job">Job (quote # or address)</label><input id="jf-job" name="job" required placeholder="Q1479"></div>
+      <div><label for="jf-addr">Address</label><input id="jf-addr" name="address"></div>
+      <div><label for="jf-cust">Customer</label><input id="jf-cust" name="customer"></div>
+      <div><label for="jf-qt">Quote total</label><input id="jf-qt" name="quote_total" type="number" step="0.01"></div>
+      <div><label for="jf-mb">Materials budget</label><input id="jf-mb" name="materials_budget" type="number" step="0.01"></div>
+      <div><label for="jf-ld">Labor days</label><input id="jf-ld" name="labor_days" type="number" step="0.5"></div>
+      <div><label for="jf-st">Work status</label><select id="jf-st" name="status"><option>open</option><option>in progress</option><option>closed</option></select></div>
+      <div class="full"><label for="jf-notes">Notes</label><input id="jf-notes" name="notes"></div>
+      <div class="full"><button class="primary">Save job</button> <button type="button" class="ghost" data-panel="">Cancel</button> <span id="joberr" class="err"></span></div>
+    </form><p class="note">Budgets, estimate lines and quote totals are visible to admins only. A budget typed here is replaced by the sum of the estimate lines once any exist.</p></div>`;
+}
+
+function jobsStaffPage(D) {
+  const body = D.J.slice().sort((a, b) => String(a.job).localeCompare(String(b.job))).map((j) => {
+    const t = jobTitle(String(j.job || "").trim());
+    return `<tr><td data-label="Job"><span class="addr">${esc(t.main)}</span>${t.sub ? `<span class="sub">${esc(t.sub)}</span>` : ""}</td><td data-label="Customer">${esc(j.customer || "")}</td><td data-label="Status"><span class="tag">${esc(j.status || "open")}</span></td><td data-label=""><button type="button" class="ghost" data-go="#/purchases?job=${esc(encodeURIComponent(String(j.job || "").trim()))}">View purchases</button></td></tr>`;
+  }).join("");
+  return `<div class="pagehead"><h2>Jobs</h2></div>
+    <div class="card"><table class="stack"><thead><tr><th>Job</th><th>Customer</th><th>Status</th><th></th></tr></thead><tbody>${body || `<tr><td colspan="4" class="muted">No jobs yet.</td></tr>`}</tbody></table></div>${dupCard(D)}`;
+}
+
+function dupCard(D) {
+  if (!D.dups.length) return "";
+  return `<div class="card" id="dups"><h3>Possible duplicate jobs ${st("review", "Needs review")}</h3>
+    <p class="muted" style="margin-top:0">These names may be the same job typed differently (same quote number, or same street number and street). Nothing is merged automatically. To link them, open the purchases of the name you do not want to keep and use <b>Assign job</b> to pick the other name, one purchase at a time. Some may really be different jobs; leave those as they are.</p>
+    ${D.dups.map((g) => `<div class="dupg"><b>${plural(g.length, "name")}:</b><ul>${g.map((n) => `<li><span class="addr">${esc(n)}</span> · ${plural(D.countBy[n] || 0, "purchase")}${D.jobRow[n] ? " · on the Jobs list" : ""} <button type="button" class="link" data-go="#/purchases?job=${esc(encodeURIComponent(n))}">View purchases</button></li>`).join("")}</ul></div>`).join("")}
+  </div>`;
+}
+
+// ---------- searchable job selector ----------
+function jobOptions() {
+  const D = state.D;
+  return D.names.map((n) => {
+    const j = D.jobRow[n], t = jobTitle(n);
+    const sub = [t.sub, j && j.customer, D.countBy[n] ? plural(D.countBy[n], "purchase") : "no purchases yet"].filter(Boolean).join(" · ");
+    return { val: n, title: t.main, sub, hay: (n + " " + (j ? (j.address || "") + " " + (j.customer || "") : "")).toLowerCase(), kind: "job" };
+  });
+}
+function comboHTML(id, label, value, placeholder) {
+  return `<div class="combo" data-combo="${id}"><label for="${id}">${esc(label)}</label><input id="${id}" class="combo-in" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="${esc(placeholder)}" value="${esc(value)}"><div class="combo-list" role="listbox" hidden></div></div>`;
+}
+function wireCombo(root, cfg) {
+  if (!root || root.dataset.wired) return; root.dataset.wired = "1";
+  const inp = $(".combo-in", root), list = $(".combo-list", root);
+  let items = [];
+  const show = () => {
+    const raw = inp.value.trim(), q = raw.toLowerCase();
+    const opts = jobOptions().filter((o) => !q || o.hay.includes(q));
+    items = [];
+    if (cfg.all) items.push({ val: "", title: "All jobs", sub: "no job filter", kind: "all" });
+    if (cfg.none) items.push({ val: "", title: cfg.none, sub: "no job", kind: "none" });
+    if (cfg.stock && !opts.some((o) => o.val.toLowerCase() === "stock") && (!q || "stock".includes(q))) items.push({ val: "stock", title: "stock", sub: "shop or truck stock, not a customer job", kind: "stock" });
+    items.push(...opts.slice(0, 40));
+    if (cfg.newjob && raw && !opts.some((o) => o.val.toLowerCase() === q) && q !== "stock") items.push({ val: raw, title: `Use "${raw}" as a new job name`, sub: "for a job that is not on the list yet", kind: "new" });
+    list.innerHTML = items.map((o, i) => `<button type="button" class="combo-opt" role="option" data-i="${i}"><b>${esc(o.title)}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ""}</button>`).join("")
+      + (opts.length > 40 ? `<div class="combo-more">${opts.length - 40} more. Keep typing to narrow the list.</div>` : "")
+      + (!items.length ? `<div class="combo-more">No job matches "${esc(raw)}".</div>` : "");
+    list.hidden = false; inp.setAttribute("aria-expanded", "true");
+  };
+  const hide = () => { list.hidden = true; inp.setAttribute("aria-expanded", "false"); };
+  const pick = (o) => { hide(); cfg.onPick(o, inp); };
+  inp.addEventListener("focus", show); inp.addEventListener("input", show);
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hide();
+    else if (e.key === "ArrowDown") { e.preventDefault(); if (list.hidden) show(); const b = $(".combo-opt", list); if (b) b.focus(); }
+    else if (e.key === "Enter") {
+      e.preventDefault(); const q = inp.value.trim().toLowerCase();
+      if (!q) { const a = items.find((o) => o.kind === "all" || o.kind === "none"); if (a) pick(a); return; }
+      const o = items.find((x) => x.kind !== "all" && x.kind !== "none" && x.val.toLowerCase() === q) || items.find((x) => x.kind === "job") || items.find((x) => x.kind === "new" || x.kind === "stock");
+      if (o) pick(o);
+    }
+  });
+  list.addEventListener("mousedown", (e) => e.preventDefault());
+  list.addEventListener("click", (e) => { const b = e.target.closest(".combo-opt"); if (b) pick(items[Number(b.dataset.i)]); });
+  list.addEventListener("keydown", (e) => {
+    const b = e.target.closest(".combo-opt"); if (!b) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); (b.nextElementSibling && b.nextElementSibling.matches(".combo-opt") ? b.nextElementSibling : b).focus(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); (b.previousElementSibling || inp).focus(); }
+    else if (e.key === "Escape") { hide(); inp.focus(); }
+  });
+  root.addEventListener("focusout", () => setTimeout(() => { if (!root.contains(document.activeElement)) hide(); }, 120));
 }
 
 // ---------- purchases ----------
-function purchasesSection(P, J) {
+function purchasesPage(D) {
   const f = state.filters;
-  const suppliers = [...new Set(P.map((p) => p.supplier).filter(Boolean))].sort();
-  const months = [...new Set(P.map((p) => ym(p.date)).filter(Boolean))].sort().reverse();
-  const jobs = [...new Set([...J.map((j) => j.job), ...P.map((p) => p.job)].filter(Boolean))].sort();
-  const linesBy = {};
-  (state.data.purchase_items || []).forEach((it) => { (linesBy[it.purchase_id] = linesBy[it.purchase_id] || []).push(it); });
-  const rows = P.filter((p) => {
-    if (f.unassigned && String(p.job || "").trim()) return false;
-    if (f.job && p.job !== f.job) return false;
+  const suppliers = [...new Set(D.P.map((p) => p.supplier).filter(Boolean))].sort();
+  const months = [...new Set(D.P.map((p) => ym(p.date)).filter(Boolean))].sort().reverse();
+  const shows = [["", "All purchases"], ["needs", "Needs a job"], ["nojob", "No job (all)"], ["stockpo", "Stock orders"], ["returns", "Returns / credits only"]];
+  const rows = D.P.filter((p) => {
+    if (f.show === "needs" && !needsJob(p)) return false;
+    if (f.show === "nojob" && hasJob(p)) return false;
+    if (f.show === "stockpo" && !(!hasJob(p) && !isQBOnly(p) && isStockPO(p))) return false;
+    if (f.show === "returns" && !isReturn(p)) return false;
+    if (f.job && String(p.job || "").trim() !== f.job) return false;
     if (f.supplier && p.supplier !== f.supplier) return false;
     if (f.month && ym(p.date) !== f.month) return false;
-    if (f.q) { const s = (JSON.stringify(p) + JSON.stringify(linesBy[p.id] || [])).toLowerCase(); if (!s.includes(f.q.toLowerCase())) return false; }
+    if (f.q) { const s = (JSON.stringify(p) + JSON.stringify(D.linesBy[p.id] || [])).toLowerCase(); if (!s.includes(f.q.toLowerCase())) return false; }
     return true;
   }).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  const sum = rows.reduce((a, p) => a + Number(p.total || 0), 0);
-  const jobOpts = (cur) => `<option value="">(unassigned)</option>` + jobs.map((j) => `<option ${j === cur ? "selected" : ""}>${esc(j)}</option>`).join("") + (jobs.some((j) => String(j).toLowerCase() === "stock") ? "" : `<option>stock</option>`) + `<option value="__new">+ type a job...</option>`;
-  const body = rows.map((p) => {
-    const L = linesBy[p.id] || [];
-    const lines = L.length ? `<details class="small"><summary>${L.length} line${L.length > 1 ? "s" : ""}</summary><table style="margin-top:4px">${L.map((it) => `<tr><td>${esc(it.description)}<div class="muted">${esc(it.part_no)}</div></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</table></details>` : p.source === "QuickBooks card charge" ? `<span class="small muted">card charge, no ticket on file</span>` : `<span class="small">${esc(p.items)}</span>`;
-    return `<tr class="${String(p.job || "").trim() ? "" : "unassigned"}">
-      <td style="white-space:nowrap">${esc(p.date)}</td>
-      <td>${esc(p.supplier)}<div class="small muted">${esc(p.invoice_no)} ${p.type === "credit" ? '<span class="pill credit">credit</span>' : ""}${p.drive_file_id ? ` <a class="drive" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${esc(p.drive_file_id)}/view" title="Open the invoice in Drive">&#128196;</a>` : ""}</div></td>
-      <td><select class="assign small" data-id="${esc(p.id)}" data-cur="${esc(p.job || "")}">${jobOpts(p.job)}</select>${p.po_ref ? `<div class="small muted">PO: ${esc(p.po_ref)}</div>` : ""}</td>
-      <td>${lines}${p.notes ? `<div class="small muted">${esc(p.notes)}</div>` : ""}</td>
-      <td class="num">${money(p.total)}<div class="small muted">${esc(p.payment)}${p.shipping ? `<br>incl. S&amp;H ${money(p.shipping)}` : ""}</div></td>
-    </tr>`;
-  }).join("");
-  return `<div class="card"><h2>Purchases <span class="muted small">(${rows.length} shown, ${money(sum)})</span></h2>
-    <div class="filters">
-      <input id="fq" placeholder="Search invoices and line items" value="${esc(f.q)}" style="flex:1;min-width:140px">
-      <select id="fjob"><option value="">All jobs</option>${jobs.map((j) => `<option ${j === f.job ? "selected" : ""}>${esc(j)}</option>`).join("")}</select>
-      <select id="fsup"><option value="">All suppliers</option>${suppliers.map((s) => `<option ${s === f.supplier ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
-      <select id="fmon"><option value="">All months</option>${months.map((m) => `<option ${m === f.month ? "selected" : ""}>${esc(m)}</option>`).join("")}</select>
-      <label style="display:flex;align-items:center;gap:6px;font-size:14px"><input type="checkbox" id="fun" ${f.unassigned ? "checked" : ""}> unassigned only</label>
+  const buy = rows.filter((p) => !isReturn(p)), ret = rows.filter(isReturn);
+  const sb = buy.reduce((a, p) => a + Number(p.total || 0), 0), sr = ret.reduce((a, p) => a + Number(p.total || 0), 0), net = sb + sr;
+  const unTotal = D.noJob.reduce((a, p) => a + Number(p.total || 0), 0);
+  const shown = rows.slice(0, state.limit);
+  const body = shown.map((p) => purchaseRow(D, p)).join("");
+  const active = f.show || f.job || f.supplier || f.month || f.q;
+  return `<div class="pagehead"><h2>Purchases</h2><span class="sp"></span><button type="button" class="primary" data-panel="add">Add purchase</button></div>
+    ${state.panel === "add" ? addForm() : ""}
+    <div class="card">
+      <div class="filters">
+        <div class="wide"><label for="fq">Search invoices and line items</label><input id="fq" type="search" placeholder="Part #, description, invoice #..." value="${esc(f.q)}"></div>
+        ${comboHTML("fjob", "Job", f.job, "All jobs (type to search)")}
+        <div><label for="fsup">Supplier</label><select id="fsup"><option value="">All suppliers</option>${suppliers.map((s) => `<option value="${esc(s)}" ${s === f.supplier ? "selected" : ""}>${esc(s)}</option>`).join("")}</select></div>
+        <div><label for="fmon">Month</label><select id="fmon"><option value="">All months</option>${months.map((m) => `<option value="${esc(m)}" ${m === f.month ? "selected" : ""}>${esc(fmtMonth(m))}</option>`).join("")}</select></div>
+        <div><label for="fshow">Show</label><select id="fshow">${shows.map((o) => `<option value="${o[0]}" ${o[0] === f.show ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>
+      </div>
+      <p style="margin:12px 0 4px"><b>${plural(rows.length, "row")}</b>: ${plural(buy.length, "purchase")} ${money(sb)}, ${plural(ret.length, "return/credit", "returns/credits")} ${ret.length ? "&minus;" + money(-sr) : money(0)}, net ${net < 0 ? money(-net) + " credit" : money(net)}.
+        ${active ? `<button type="button" class="link" data-go="#/purchases">Clear filters</button>` : ""}</p>
+      ${f.show === "needs" ? `<p class="note" style="margin-top:0">"Needs a job" leaves out stock orders (PO marked shop, stock, truck stock, testing or Paula) and QuickBooks card charges with no ticket, the same rule as the weekly email.</p>` : ""}
+      <p class="note" style="margin-top:0">No job at all: ${plural(D.noJob.length, "purchase")}, ${money(unTotal)} (${D.need.length} need a job, ${D.stockPO.length} stock orders, ${D.qbOnly.length} card charges with no ticket).</p>
     </div>
-    <div class="wrap"><table><thead><tr><th>Date</th><th>Supplier / invoice</th><th>Job</th><th>Items</th><th class="num">Total</th></tr></thead>
-    <tbody>${body || `<tr><td colspan="5" class="muted">Nothing matches.</td></tr>`}</tbody></table></div></div>`;
+    <div class="card tablecard"><table class="stack"><thead><tr><th>Date</th><th>Supplier / invoice</th><th>Job</th><th class="num">Total</th><th></th></tr></thead>
+    <tbody>${body || `<tr><td colspan="5" class="muted">Nothing matches these filters.</td></tr>`}</tbody></table></div>
+    ${rows.length > shown.length ? `<p><button type="button" class="ghost" id="more">Show ${Math.min(60, rows.length - shown.length)} more (${rows.length - shown.length} not shown)</button></p>` : ""}`;
 }
 
-function addSection(J) {
-  const jobs = J.map((j) => j.job).filter(Boolean).sort();
-  return `<div class="card"><details><summary>Add a purchase or receipt</summary>
-    <form id="addf" class="row" style="margin-top:10px">
-      <div><label>Date</label><input name="date" type="date" required value="${todayPT()}"></div>
-      <div><label>Supplier</label><input name="supplier" list="supl" required placeholder="Five Star, Home Depot..."><datalist id="supl">${[...new Set((state.data.purchases || []).map((p) => p.supplier))].map((s) => `<option value="${esc(s)}">`).join("")}</datalist></div>
-      <div><label>Invoice / receipt #</label><input name="invoice_no"></div>
-      <div><label>Job (quote # or address)</label><input name="job" list="jobl" placeholder="Q1479 or 'stock'"><datalist id="jobl">${jobs.map((j) => `<option value="${esc(j)}">`).join("")}<option value="stock"></datalist></div>
-      <div><label>Total (negative for a return)</label><input name="total" type="number" step="0.01" required></div>
-      <div><label>Paid with</label><input name="payment" placeholder="card ...3602, account, cash"></div>
-      <div class="full"><label>Items (short)</label><input name="items" placeholder="20 ft 6in C900 pipe, 1in nipples..."></div>
-      <div class="full"><label>Line items, optional, one per line: qty | part # | description | unit price</label><textarea name="lines" rows="3" placeholder="2 | ZNB0512 | 1in x 12in black nipple | 5.33&#10;20 ft | 6C900C200 | 6in C900 PVC pipe | 18.13"></textarea></div>
-      <div class="full"><label>Notes</label><input name="notes"></div>
-      <div class="full right"><span id="adderr" class="err"></span> <button class="primary">Save purchase</button></div>
-    </form><p class="muted small">Line items feed the price history and the per-job comparison. Five Star invoices are added automatically from Drive; add here only cash and card receipts from other stores.</p></details></div>`;
+function purchaseRow(D, p) {
+  const L = D.linesBy[p.id] || [], ret = isReturn(p), name = String(p.job || "").trim();
+  let jobCell;
+  if (name) { const t = jobTitle(name); jobCell = `<span class="addr">${esc(t.main)}</span>${t.sub ? `<span class="sub">${esc(t.sub)}</span>` : ""}`; }
+  else if (isQBOnly(p)) jobCell = `${st("info", "No job")}<span class="sub">card charge, no ticket on file</span>`;
+  else if (isStockPO(p)) jobCell = `${st("info", "Stock order")}<span class="sub">PO: ${esc(p.po_ref)}</span>`;
+  else jobCell = st("review", "Needs a job");
+  const lines = L.length ? `<div class="wrap"><table class="mini"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Ext</th></tr></thead><tbody>${L.map((it) => `<tr><td>${esc(it.description)}<span class="sub">${esc(it.part_no)}${it.original_sale ? " · return of " + esc(it.original_sale) : ""}</span></td><td class="num">${esc(it.qty)} ${esc(it.unit)}</td><td class="num">${money3(it.unit_price)}</td><td class="num">${money(it.ext_price)}</td></tr>`).join("")}</tbody></table></div>`
+    : isQBOnly(p) ? `<p class="muted">Card charge from QuickBooks. No ticket on file, so there are no line items.</p>` : `<p class="muted">No line items recorded.</p>`;
+  const facts = [
+    p.payment && `<b>Paid with:</b> ${esc(p.payment)}`,
+    (p.subtotal !== "" && p.subtotal != null) && `<b>Subtotal:</b> ${money(p.subtotal)}${p.tax !== "" && p.tax != null ? ` · <b>Tax:</b> ${money(p.tax)}` : ""}${p.shipping ? ` · <b>S&amp;H:</b> ${money(p.shipping)}` : ""}`,
+    p.po_ref && `<b>PO on invoice:</b> ${esc(p.po_ref)}`,
+    p.source && `<b>Source:</b> ${esc(p.source)}${p.logged_by ? " · logged by " + esc(p.logged_by) : ""}`,
+    p.notes && `<b>Notes:</b> ${esc(p.notes)}`,
+  ].filter(Boolean).map((x) => `<div class="small">${x}</div>`).join("");
+  return `<tr>
+    <td data-label="Date" style="white-space:nowrap">${esc(fmtDate(p.date))}</td>
+    <td data-label="Supplier / invoice">${esc(p.supplier)}<span class="sub">${esc(p.invoice_no)}</span>${ret ? st("credit", "Return / credit") : ""}</td>
+    <td data-label="Job">${jobCell}</td>
+    <td data-label="Total" class="num"><b>${money(p.total)}</b>${ret ? `<span class="sub">credit</span>` : ""}</td>
+    <td data-label=""><div class="acts">
+      ${p.drive_file_id ? `<a class="btn" target="_blank" rel="noopener" href="https://drive.google.com/file/d/${esc(encodeURIComponent(p.drive_file_id))}/view">View invoice</a>` : ""}
+      <button type="button" class="ghost" data-toggle="${esc(p.id)}">View items${L.length ? ` (${L.length})` : ""}</button>
+      <button type="button" class="${name ? "ghost" : "primary"}" data-toggle="${esc(p.id)}" data-focus="1">Assign job</button>
+    </div></td>
+  </tr>
+  <tr class="detail" data-for="${esc(p.id)}" hidden><td colspan="5">
+    <div class="assignbox" data-id="${esc(p.id)}" data-cur="${esc(name)}">
+      <div style="max-width:420px">${comboHTML("as-" + esc(p.id), name ? `Job: ${name} - change it` : "Assign this purchase to a job", "", "Type an address or quote #")}</div>
+      <div class="err" data-msg></div>
+    </div>
+    <h4>Items</h4>${lines}
+    ${L.length && p.items ? `<details class="mt"><summary class="small">Original invoice wording</summary><p class="small">${esc(p.items)}</p></details>` : (!L.length && p.items ? `<p class="small"><b>Items (as written):</b> ${esc(p.items)}</p>` : "")}
+    <div class="mt">${facts}</div>
+  </td></tr>`;
+}
+
+function addForm() {
+  return `<div class="card panel"><h3>Add a purchase or receipt</h3>
+    <form id="addf" class="form">
+      <div><label for="af-date">Date</label><input id="af-date" name="date" type="date" required value="${todayPT()}"></div>
+      <div><label for="af-sup">Supplier</label><input id="af-sup" name="supplier" list="supl" required placeholder="Five Star, Home Depot..."><datalist id="supl">${[...new Set((state.data.purchases || []).map((p) => p.supplier))].map((s) => `<option value="${esc(s)}">`).join("")}</datalist></div>
+      <div><label for="af-inv">Invoice / receipt #</label><input id="af-inv" name="invoice_no"></div>
+      <div>${comboHTML("af-job", "Job (address, quote #, or stock)", "", "Type to search jobs")}<input type="hidden" name="job" id="af-jobval"><span class="sub" id="af-jobsel"></span></div>
+      <div><label for="af-total">Total (negative for a return)</label><input id="af-total" name="total" type="number" step="0.01" required></div>
+      <div><label for="af-pay">Paid with</label><input id="af-pay" name="payment" placeholder="card ...3602, account, cash"></div>
+      <div class="full"><label for="af-items">Items (short)</label><input id="af-items" name="items" placeholder="20 ft 6in C900 pipe, 1in nipples..."></div>
+      <div class="full"><label for="af-lines">Line items, optional, one per line: qty | part # | description | unit price</label><textarea id="af-lines" name="lines" rows="3" placeholder="2 | ZNB0512 | 1in x 12in black nipple | 5.33&#10;20 ft | 6C900C200 | 6in C900 PVC pipe | 18.13"></textarea></div>
+      <div class="full"><label for="af-notes">Notes</label><input id="af-notes" name="notes"></div>
+      <div class="full"><button class="primary">Save purchase</button> <button type="button" class="ghost" data-panel="">Cancel</button> <span id="adderr" class="err"></span></div>
+    </form><p class="note">Line items feed the price history and the per-job comparison. Five Star invoices are added automatically from Drive; add here only cash and card receipts from other stores.</p></div>`;
 }
 
 function parseLines(text) {
@@ -343,111 +740,131 @@ function parseLines(text) {
 }
 
 // ---------- price history ----------
-function priceSection(H) {
-  const q = state.pq.toLowerCase();
-  const latest = {};
-  H.forEach((h) => { const k = h.supplier + "|" + h.part_no; if (!latest[k] || String(h.date) > String(latest[k].date)) latest[k] = h; });
-  const rows = Object.values(latest).filter((h) => !q || (h.part_no + " " + h.description).toLowerCase().includes(q))
-    .sort((a, b) => (Number(b.change_pct) || 0) - (Number(a.change_pct) || 0) || String(b.date).localeCompare(String(a.date)));
-  const hist = (h) => H.filter((x) => x.supplier === h.supplier && x.part_no === h.part_no).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  const body = rows.map((h) => {
+function pricesPage(D) {
+  const q = state.pq.toLowerCase(), show = state.pshow, d60 = daysAgo(60);
+  const rows = D.priceRows.filter((h) => {
+    if (q && !(h.part_no + " " + h.description).toLowerCase().includes(q)) return false;
+    const c = Number(h.change_pct);
+    if (show === "rises" && !(h.change_pct !== "" && c >= 10)) return false;
+    if (show === "rises60" && !(h.change_pct !== "" && c >= 10 && String(h.date) >= d60)) return false;
+    if (show === "up" && !(h.change_pct !== "" && c > 0)) return false;
+    return true;
+  }).sort((a, b) => (Number(b.change_pct) || 0) - (Number(a.change_pct) || 0) || String(b.date).localeCompare(String(a.date)));
+  const hist = (h) => D.H.filter((x) => x.supplier === h.supplier && x.part_no === h.part_no).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const shownP = rows.slice(0, state.limit);
+  const body = shownP.map((h) => {
     const c = h.change_pct === "" ? "" : Number(h.change_pct);
-    const chg = c === "" ? `<span class="muted small">first buy</span>` : c >= 10 ? `<span class="pill bad">+${c}%</span>` : c > 0 ? `<span class="up">+${c}%</span>` : c < 0 ? `<span class="down">${c}%</span>` : `<span class="muted">same</span>`;
+    const chg = c === "" ? `<span class="muted">First buy</span>` : c >= 10 ? st("urgent", `Up ${c}%`) : c > 0 ? st("review", `Up ${c}%`) : c < 0 ? st("info", `Down ${Math.abs(c)}%`) : `<span class="muted">Same price</span>`;
     const hs = hist(h);
-    const more = hs.length > 1 ? `<details class="small"><summary>${hs.length} buys</summary>${hs.map((x) => `<div>${esc(x.date)} · ${money3(x.unit_price)} · ${esc(x.qty)} ${esc(x.unit)} · ${esc(x.invoice_no)}</div>`).join("")}</details>` : "";
-    return `<tr><td>${esc(h.description)}<div class="small muted">${esc(h.part_no)} · ${esc(h.supplier)}</div>${more}</td><td style="white-space:nowrap">${esc(h.date)}</td><td class="num">${money3(h.unit_price)}<div class="small muted">per ${esc(h.unit)}</div></td><td class="num">${h.prev_price === "" ? "" : money3(h.prev_price)}<div class="small muted">${esc(h.prev_date)}</div></td><td class="num">${chg}</td></tr>`;
+    const more = hs.length > 1 ? `<details class="small"><summary>Price history (${hs.length} buys)</summary>${hs.map((x) => `<div>${esc(fmtDate(x.date))} · ${money3(x.unit_price)} · ${esc(x.qty)} ${esc(x.unit)} · ${esc(x.invoice_no)}</div>`).join("")}</details>` : "";
+    return `<tr><td data-label="Item">${esc(h.description)}<span class="sub">${esc(h.part_no)} · ${esc(h.supplier)}</span>${more}</td><td data-label="Last bought" style="white-space:nowrap">${esc(fmtDate(h.date))}</td><td data-label="Unit price" class="num">${money3(h.unit_price)}<span class="sub">per ${esc(h.unit)}</span></td><td data-label="Previous" class="num">${h.prev_price === "" ? `<span class="muted">-</span>` : money3(h.prev_price)}<span class="sub">${esc(fmtDate(h.prev_date))}</span></td><td data-label="Change" class="num">${chg}</td></tr>`;
   }).join("");
-  return `<div class="card"><h2>Price history <span class="muted small">(${rows.length} items, latest price each; increases first)</span></h2>
-    <div class="filters"><input id="pq" placeholder="Search part or description" value="${esc(state.pq)}" style="flex:1;min-width:140px"></div>
-    <div class="wrap"><table><thead><tr><th>Item</th><th>Last bought</th><th class="num">Unit price</th><th class="num">Previous</th><th class="num">Change</th></tr></thead>
-    <tbody>${body || `<tr><td colspan="5" class="muted">No line items yet.</td></tr>`}</tbody></table></div>
-    <p class="muted small">Built from the line items of every invoice, by supplier and part number. Returns (credits) are left out.</p></div>`;
+  const opts = [["", "All parts"], ["rises60", "Up 10%+, bought in the last 60 days"], ["rises", "Up 10%+ (any date)"], ["up", "Any increase"]];
+  return `<div class="pagehead"><h2>Price History</h2></div>
+    <div class="card"><div class="filters">
+      <div class="wide"><label for="pq">Search part or description</label><input id="pq" type="search" value="${esc(state.pq)}" placeholder="e.g. nipple, ZNB0512"></div>
+      <div><label for="pshow">Show</label><select id="pshow">${opts.map((o) => `<option value="${o[0]}" ${o[0] === show ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>
+    </div><p class="note">${plural(rows.length, "part")}, latest price of each; biggest increases first. Built from the line items of every invoice, by supplier and part number. Returns are left out.</p></div>
+    <div class="card tablecard"><table class="stack"><thead><tr><th>Item</th><th>Last bought</th><th class="num">Unit price</th><th class="num">Previous</th><th class="num">Change</th></tr></thead>
+    <tbody>${body || `<tr><td colspan="5" class="muted">No parts match.</td></tr>`}</tbody></table></div>
+    ${rows.length > shownP.length ? `<p><button type="button" class="ghost" id="more">Show ${Math.min(60, rows.length - shownP.length)} more (${rows.length - shownP.length} not shown)</button></p>` : ""}`;
 }
 
 // ---------- inventory ----------
-function inventorySection(I) {
-  const q = state.iq.toLowerCase();
-  const rows = I.filter((i) => !q || (i.item + " " + i.part_no + " " + i.location).toLowerCase().includes(q)).sort((a, b) => String(a.item).localeCompare(String(b.item)));
-  const body = rows.map((i, n) => {
-    const lowCls = isLow(i) ? "low" : "";
-    return `<tr class="${lowCls}" data-n="${n}">
-      <td>${esc(i.item)}<div class="small muted">${esc(i.part_no)}${i.notes ? " · " + esc(i.notes) : ""}</div></td>
-      <td><input class="cell inv-qty" type="number" step="1" value="${esc(i.qty_on_hand)}"> <span class="small muted">${esc(i.unit)}</span></td>
-      <td><input class="cell wide inv-loc" value="${esc(i.location)}"></td>
-      <td><input class="cell inv-min" type="number" step="1" value="${esc(i.min_level)}"></td>
-      <td class="small muted">${i.last_counted ? esc(String(i.last_counted).slice(0, 10)) + "<br>" + esc(i.counted_by) : "never"}</td>
-      <td><button class="ghost small inv-save" data-part="${esc(i.part_no)}" data-item="${esc(i.item)}">save</button></td>
-    </tr>`;
+function inventoryPage(D) {
+  const q = state.iq.toLowerCase(), show = state.ishow;
+  const rows = D.inv.filter(({ i, st: s }) => {
+    if (q && !(i.item + " " + i.part_no + " " + i.location).toLowerCase().includes(q)) return false;
+    if (show === "low" && !(s.key === "low" || s.key === "zero")) return false;
+    if (show === "notcounted" && s.key !== "notcounted") return false;
+    if (show === "nomin" && !(i.min_level === "" || i.min_level == null)) return false;
+    if (show === "counted" && s.key === "notcounted") return false;
+    return true;
+  }).sort((a, b) => { const r = (x) => ({ zero: 0, low: 1, notcounted: 2, nomin: 3, ok: 4 }[x.st.key]); return r(a) - r(b) || String(a.i.item).localeCompare(String(b.i.item)); });
+  const body = rows.map(({ i, st: s, b }, n) => {
+    const counted = isCounted(i), hasQty = i.qty_on_hand !== "" && i.qty_on_hand != null;
+    const onHand = counted
+      ? `<b>${esc(hasQty ? i.qty_on_hand : "?")} ${esc(i.unit)}</b><span class="sub">counted ${esc(fmtDate(i.last_counted))}${i.counted_by ? " by " + esc(i.counted_by) : ""}</span>`
+      : `<span class="muted">Not counted</span>${hasQty ? `<span class="sub">Recorded: ${esc(i.qty_on_hand)} ${esc(i.unit)} (from a receipt, not a count)</span>` : ""}`;
+    const min = i.min_level === "" || i.min_level == null ? `<span class="muted">Not set</span>` : `${esc(i.min_level)} ${esc(i.unit)}`;
+    const bought = b ? `${esc(b.qty)} ${esc(b.unit || i.unit)} since ${esc(fmtMon(b.first))}<span class="sub">from ${plural(b.n, "purchase line")}, not a count</span>` : `<span class="muted">None found</span>`;
+    const key = "inv" + n;
+    return `<tr>
+      <td data-label="Item"><b>${esc(i.item)}</b><span class="sub">${esc(i.part_no)}${i.location ? " · " + esc(i.location) : ""}</span></td>
+      <td data-label="Status">${st(s.lv, s.label)}</td>
+      <td data-label="On hand (confirmed count)">${onHand}</td>
+      <td data-label="Reorder level">${min}</td>
+      <td data-label="Bought (from purchases)">${bought}</td>
+      <td data-label=""><button type="button" class="${counted ? "ghost" : "primary"}" data-toggle="${key}" data-focus="1">Update count</button></td>
+    </tr>
+    <tr class="detail" data-for="${key}" hidden><td colspan="6">
+      <form class="form invrow" data-part="${esc(i.part_no)}" data-item="${esc(i.item)}">
+        <div><label for="${key}-q">Counted quantity (${esc(i.unit || "ea")})</label><input id="${key}-q" class="combo-in-focus" name="qty_on_hand" type="number" step="1" min="0" value="${counted && hasQty ? esc(i.qty_on_hand) : ""}" placeholder="count it, then type it"></div>
+        <div><label for="${key}-l">Location</label><input id="${key}-l" name="location" value="${esc(i.location)}"></div>
+        <div><label for="${key}-m">Reorder level</label><input id="${key}-m" name="min_level" type="number" step="1" min="0" value="${esc(i.min_level)}" placeholder="not set"></div>
+        <div class="full"><button class="primary">Save</button> <span class="err" data-msg></span></div>
+      </form>
+      ${i.notes ? `<p class="small muted">${esc(i.notes)}</p>` : ""}
+    </td></tr>`;
   }).join("");
-  return `<div class="card"><h2>Inventory <span class="muted small">(${rows.length} items)</span></h2>
-    <div class="filters"><input id="iq" placeholder="Search item, part or location" value="${esc(state.iq)}" style="flex:1;min-width:140px"></div>
-    <div class="wrap"><table><thead><tr><th>Item</th><th>On hand</th><th>Location</th><th>Min</th><th>Last count</th><th></th></tr></thead>
-    <tbody>${body || `<tr><td colspan="6" class="muted">No inventory items yet.</td></tr>`}</tbody></table></div>
-    <details style="margin-top:8px"><summary class="small">Add an inventory item</summary>
-    <form id="invf" class="row" style="margin-top:8px">
-      <div class="full"><label>Item</label><input name="item" required placeholder="1in black malleable plug"></div>
-      <div><label>Part #</label><input name="part_no"></div>
-      <div><label>Unit</label><input name="unit" value="ea"></div>
-      <div><label>On hand</label><input name="qty_on_hand" type="number" step="1"></div>
-      <div><label>Location</label><input name="location" value="shop"></div>
-      <div><label>Minimum</label><input name="min_level" type="number" step="1"></div>
-      <div class="full"><label>Notes</label><input name="notes"></div>
-      <div class="full right"><span id="inverr" class="err"></span> <button class="primary">Add item</button></div>
-    </form></details>
-    <p class="muted small">Type the counted quantity and press save. The date and your name are recorded with every count. Items at or below their minimum are marked in red.</p></div>`;
+  const opts = [["", "All items"], ["low", "Low or out of stock (counted)"], ["notcounted", "Not counted"], ["counted", "Counted"], ["nomin", "Reorder level not set"]];
+  return `<div class="pagehead"><h2>Inventory</h2><span class="sp"></span><button type="button" class="primary" data-panel="inv">Add item</button></div>
+    ${state.panel === "inv" ? invForm() : ""}
+    <div class="card"><div class="filters">
+      <div class="wide"><label for="iq">Search item, part or location</label><input id="iq" type="search" value="${esc(state.iq)}" placeholder="e.g. nipple, shop"></div>
+      <div><label for="ishow">Show</label><select id="ishow">${opts.map((o) => `<option value="${o[0]}" ${o[0] === show ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>
+    </div><p class="note">${plural(rows.length, "item")} shown. <b>On hand</b> is only a confirmed count (with date and name). <b>Bought</b> adds up purchase lines for the same part number; it is not a count and ignores what was used. Low stock = a counted quantity at or below the reorder level.</p></div>
+    <div class="card tablecard"><table class="stack"><thead><tr><th>Item</th><th>Status</th><th>On hand (confirmed count)</th><th>Reorder level</th><th>Bought (from purchases)</th><th></th></tr></thead>
+    <tbody>${body || `<tr><td colspan="6" class="muted">No items match.</td></tr>`}</tbody></table></div>`;
+}
+
+function invForm() {
+  return `<div class="card panel"><h3>Add an inventory item</h3>
+    <form id="invf" class="form">
+      <div class="full"><label for="if-item">Item</label><input id="if-item" name="item" required placeholder="1in black malleable plug"></div>
+      <div><label for="if-part">Part #</label><input id="if-part" name="part_no"></div>
+      <div><label for="if-unit">Unit</label><input id="if-unit" name="unit" value="ea"></div>
+      <div><label for="if-qty">Counted quantity (leave blank if not counted)</label><input id="if-qty" name="qty_on_hand" type="number" step="1"></div>
+      <div><label for="if-loc">Location</label><input id="if-loc" name="location" value="shop"></div>
+      <div><label for="if-min">Reorder level</label><input id="if-min" name="min_level" type="number" step="1"></div>
+      <div class="full"><label for="if-notes">Notes</label><input id="if-notes" name="notes"></div>
+      <div class="full"><button class="primary">Add item</button> <button type="button" class="ghost" data-panel="">Cancel</button> <span id="inverr" class="err"></span></div>
+    </form></div>`;
 }
 
 // ---------- wiring ----------
 function wire() {
   const f = state.filters;
-  document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(); });
   const on = (sel, ev, fn) => { const el = $(sel); if (el) el[ev] = fn; };
-  on("#fq", "oninput", (e) => { f.q = e.target.value; render(); $("#fq").focus(); $("#fq").setSelectionRange(f.q.length, f.q.length); });
-  on("#fjob", "onchange", (e) => { f.job = e.target.value; render(); });
-  on("#fsup", "onchange", (e) => { f.supplier = e.target.value; render(); });
-  on("#fmon", "onchange", (e) => { f.month = e.target.value; render(); });
-  on("#fun", "onchange", (e) => { f.unassigned = e.target.checked; render(); });
-  on("#pq", "oninput", (e) => { state.pq = e.target.value; render(); $("#pq").focus(); $("#pq").setSelectionRange(state.pq.length, state.pq.length); });
-  on("#iq", "oninput", (e) => { state.iq = e.target.value; render(); $("#iq").focus(); $("#iq").setSelectionRange(state.iq.length, state.iq.length); });
-  on("#pickjob", "onchange", (e) => { state.job = e.target.value; render(); });
-  document.querySelectorAll(".pick-job").forEach((a) => a.onclick = (e) => { e.preventDefault(); state.job = a.dataset.job; render(); $("#pickjob")?.scrollIntoView({ behavior: "smooth" }); });
-  document.querySelectorAll(".assign").forEach((sel) => {
-    const cell = sel.parentElement;
-    const clear = () => cell.querySelectorAll(".assign-new, .assign-msg").forEach((x) => x.remove());
-    const restore = () => { sel.value = sel.dataset.cur; sel.disabled = false; };
-    const send = async (job) => {
-      sel.disabled = true;
-      try { await api({ action: "assign", id: sel.dataset.id, job }); await load(); }
-      catch (err) {
-        restore();
-        const m = document.createElement("div"); m.className = "err small assign-msg"; m.textContent = "Could not assign: " + err.message;
-        sel.after(m);
-      }
-    };
-    sel.onchange = () => {
-      clear();
-      if (sel.value !== "__new") return send(sel.value);
-      const box = document.createElement("span"); box.className = "assign-new";
-      box.innerHTML = ` <input class="cell wide" placeholder="Quote # or address" aria-label="Job"> <button type="button" class="ghost small">OK</button> <button type="button" class="ghost small">Cancel</button>`;
-      sel.after(box);
-      const inp = $("input", box), [okBtn, cancelBtn] = box.querySelectorAll("button");
-      const cancel = () => { clear(); restore(); };
-      const ok = () => { const job = inp.value.trim(); if (!job) return cancel(); clear(); send(job); };
-      okBtn.onclick = ok; cancelBtn.onclick = cancel;
-      inp.onkeydown = (e) => { if (e.key === "Enter") ok(); else if (e.key === "Escape") cancel(); };
-      inp.focus();
-    };
-  });
-  const save = async (e, errSel, payload) => {
-    const btn = e.target.querySelector("button.primary");
+  const keepFocus = (sel, v) => { const el = $(sel); if (el) { el.focus(); try { el.setSelectionRange(v.length, v.length); } catch {} } };
+  on("#fq", "oninput", (e) => { f.q = e.target.value; state.limit = 60; render(); keepFocus("#fq", f.q); });
+  on("#fsup", "onchange", (e) => { f.supplier = e.target.value; state.limit = 60; render(); });
+  on("#fmon", "onchange", (e) => { f.month = e.target.value; state.limit = 60; render(); });
+  on("#fshow", "onchange", (e) => { f.show = e.target.value; state.limit = 60; render(); });
+  on("#pq", "oninput", (e) => { state.pq = e.target.value; state.limit = 60; render(); keepFocus("#pq", state.pq); });
+  on("#pshow", "onchange", (e) => { state.pshow = e.target.value; state.limit = 60; render(); });
+  on("#iq", "oninput", (e) => { state.iq = e.target.value; render(); keepFocus("#iq", state.iq); });
+  on("#ishow", "onchange", (e) => { state.ishow = e.target.value; render(); });
+  on("#jshow", "onchange", (e) => { state.jshow = e.target.value; render(); });
+  on("#more", "onclick", () => { state.limit += 60; render(); });
+  // job filter selector
+  wireCombo($('[data-combo="fjob"]'), { all: true, onPick: (o) => { f.job = o.val; state.limit = 60; render(); } });
+  // add purchase: job selector
+  wireCombo($('[data-combo="af-job"]'), { none: "No job yet", stock: true, newjob: true, onPick: (o, inp) => {
+    $("#af-jobval").value = o.val; inp.value = o.val;
+    $("#af-jobsel").textContent = o.kind === "none" ? "No job: it will show under Needs a job." : o.kind === "new" ? `New job name: ${o.val}` : `Selected: ${o.title}${o.sub ? " (" + o.sub + ")" : ""}`;
+  } });
+  const save = async (form, errEl, payload) => {
+    const btn = form.querySelector("button.primary");
     if (btn) btn.disabled = true;
-    $(errSel).textContent = "Saving...";
-    try { await api(payload); await load(); }
-    catch (err) { $(errSel).textContent = err.message; if (btn) btn.disabled = false; }
+    errEl.textContent = "Saving...";
+    try { await api(payload); state.panel = ""; await load(); }
+    catch (err) { errEl.textContent = "Could not save: " + err.message; if (btn) btn.disabled = false; }
   };
   on("#addf", "onsubmit", async (e) => {
     e.preventDefault();
     const purchase = Object.fromEntries(new FormData(e.target).entries());
+    if (!purchase.job) purchase.job = ($("#af-job") ? $("#af-job").value.trim() : "");
     const lines = parseLines(purchase.lines); delete purchase.lines;
     const norm = (s) => String(s ?? "").trim().toLowerCase();
     if (norm(purchase.invoice_no) && !e.target.dataset.dupOk && (state.data.purchases || []).some((p) => norm(p.supplier) === norm(purchase.supplier) && norm(p.invoice_no) === norm(purchase.invoice_no))) {
@@ -455,48 +872,90 @@ function wire() {
       $("#adderr").textContent = "This supplier and invoice number is already in the list. Press Save again to add it anyway.";
       return;
     }
-    await save(e, "#adderr", { action: "add", purchase, lines });
+    await save(e.target, $("#adderr"), { action: "add", purchase, lines });
   });
   on("#addf", "oninput", (e) => { delete e.currentTarget.dataset.dupOk; });
   on("#estf", "onsubmit", async (e) => {
     e.preventDefault();
     const item = Object.fromEntries(new FormData(e.target).entries());
-    await save(e, "#esterr", { action: "addEstimateItem", item });
+    await save(e.target, $("#esterr"), { action: "addEstimateItem", item });
   });
   on("#invf", "onsubmit", async (e) => {
     e.preventDefault();
     const item = Object.fromEntries(new FormData(e.target).entries());
-    await save(e, "#inverr", { action: "setInventory", item });
+    await save(e.target, $("#inverr"), { action: "setInventory", item });
   });
-  document.querySelectorAll(".inv-save").forEach((b) => b.onclick = async () => {
-    const tr = b.closest("tr");
-    const item = { item: b.dataset.item, part_no: b.dataset.part, qty_on_hand: $(".inv-qty", tr).value, location: $(".inv-loc", tr).value, min_level: $(".inv-min", tr).value };
-    b.disabled = true; b.textContent = "saving...";
-    try { await api({ action: "setInventory", item }); await load(); }
-    catch (err) { alert("Could not save: " + err.message); b.disabled = false; b.textContent = "save"; }
+  on("#jobf", "onsubmit", async (e) => {
+    e.preventDefault();
+    const job = Object.fromEntries(new FormData(e.target).entries());
+    await save(e.target, $("#joberr"), { action: "upsertJob", job });
   });
-  const jf = $("#jobf");
-  if (jf) {
-    jf.onsubmit = async (e) => {
-      e.preventDefault();
-      const job = Object.fromEntries(new FormData(e.target).entries());
-      await save(e, "#joberr", { action: "upsertJob", job });
-    };
-    document.querySelectorAll(".edit-job").forEach((b) => b.onclick = () => {
-      const j = (state.data.jobs || []).find((x) => x.job === b.dataset.job) || {};
-      $("#jobdet").open = true;
-      ["job", "address", "customer", "quote_total", "materials_budget", "labor_days", "status", "notes"].forEach((k) => { if (jf.elements[k]) jf.elements[k].value = j[k] ?? ""; });
-      jf.scrollIntoView({ behavior: "smooth" });
-    });
-  }
-  $("#refresh").onclick = load;
-  $("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; state.data = null; renderLogin(); };
+  document.querySelectorAll("form.invrow").forEach((fm) => fm.onsubmit = async (e) => {
+    e.preventDefault();
+    const v = Object.fromEntries(new FormData(fm).entries());
+    const item = { item: fm.dataset.item, part_no: fm.dataset.part, qty_on_hand: v.qty_on_hand, location: v.location, min_level: v.min_level };
+    await save(fm, $("[data-msg]", fm), { action: "setInventory", item });
+  });
+  document.querySelectorAll("form.setb").forEach((fm) => fm.onsubmit = async (e) => {
+    e.preventDefault();
+    const val = $("input", fm).value;
+    await save(fm, $(".err", fm), { action: "upsertJob", job: { job: fm.dataset.job, materials_budget: val } });
+  });
 }
+
+// assign a purchase (existing "assign" action), wired when its row opens
+function wireAssign(box) {
+  const root = $(".combo", box);
+  wireCombo(root, { none: "Remove the job (no job)", stock: true, newjob: true, onPick: async (o, inp) => {
+    const msg = $("[data-msg]", box);
+    if (o.val === box.dataset.cur) { msg.textContent = "That is already the job on this purchase."; return; }
+    inp.disabled = true; msg.textContent = "Saving...";
+    try { await api({ action: "assign", id: box.dataset.id, job: o.val }); await load(); }
+    catch (err) { inp.disabled = false; msg.textContent = "Could not assign: " + err.message; }
+  } });
+}
+
+// one delegated click handler for links, toggles and panels
+document.addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]");
+  if (go) { e.preventDefault(); navigate(go.dataset.go); return; }
+  const tg = e.target.closest("[data-toggle]");
+  if (tg) {
+    const row = document.querySelector(`tr.detail[data-for="${CSS.escape(tg.dataset.toggle)}"]`);
+    if (!row) return;
+    const opening = row.hidden || !!tg.dataset.focus;
+    row.hidden = !opening;
+    if (opening) {
+      const box = $(".assignbox", row); if (box) wireAssign(box);
+      if (tg.dataset.focus) { const inp = $(".assignbox .combo-in", row) || $("input[name=qty_on_hand]", row); if (inp) inp.focus(); }
+    }
+    return;
+  }
+  const pn = e.target.closest("[data-panel]");
+  if (pn) { state.panel = state.panel === pn.dataset.panel ? "" : pn.dataset.panel; render(); if (state.panel) { const c = $(".panel"); if (c) { c.scrollIntoView({ block: "start" }); const i = $("input:not([type=hidden])", c); if (i) i.focus(); } } return; }
+  const sb = e.target.closest("[data-setb]");
+  if (sb) { const fm = sb.parentElement.nextElementSibling; sb.parentElement.hidden = true; fm.hidden = false; $("input", fm).focus(); return; }
+  const cn = e.target.closest("form.setb [data-cancel]");
+  if (cn) { const fm = cn.closest("form"); fm.hidden = true; fm.previousElementSibling.hidden = false; return; }
+  const ej = e.target.closest("[data-editjob]");
+  if (ej) {
+    const j = (state.data.jobs || []).find((x) => String(x.job || "").trim() === ej.dataset.editjob) || {};
+    state.panel = "job"; render();
+    const jf = $("#jobf");
+    ["job", "address", "customer", "quote_total", "materials_budget", "labor_days", "status", "notes"].forEach((k) => { if (jf.elements[k]) jf.elements[k].value = j[k] ?? ""; });
+    jf.scrollIntoView({ block: "start" });
+  }
+});
+window.addEventListener("popstate", () => { applyHash(location.hash || "#/overview"); if (state.data) render(); });
+
+$("#refresh").onclick = load;
+$("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; state.data = null; renderLogin(); };
 
 (function boot() {
   try { state.name = localStorage.getItem("mt_name") || ""; state.passcode = sessionStorage.getItem("mt_pc") || ""; } catch {}
+  if (location.hash) applyHash(location.hash);
   if (API_URL.startsWith("PASTE_")) { $("#app").innerHTML = `<div class="card"><b>Not connected yet.</b> The Apps Script URL has not been set in this page (see README).</div>`; return; }
-  if (state.passcode && state.name) load(); else renderLogin();
+  if (state.passcode && state.name) load().then(afterNav); else renderLogin();
 })();
 </script>
 </body>
