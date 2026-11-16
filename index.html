@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ace Materials Tracker</title>
-<meta name="description" content="Ace Fire LA materials spending by job - admin and staff views.">
+<meta name="description" content="Ace Fire LA materials spending by job - admin and staff views. v3: opens with the ACE dashboard sign-in.">
 <style>
   :root {
     --bg: #f4f5f7; --card: #ffffff; --ink: #14181d; --muted: #47515d; --line: #dde2e8; --chip: #eceff3;
@@ -73,6 +73,9 @@
   .err { color: var(--red); font-size: 15px; min-height: 1em; }
   .ok-msg { color: var(--ink); font-size: 15px; }
   .login { max-width: 420px; margin: 50px auto; }
+  .login .gbtn { min-height: 44px; margin: 10px 0 4px; }
+  .login details { border-top: 1px solid var(--line); padding-top: 10px; }
+  header a.hlink { border: 1px solid #9aa4b0; border-radius: 8px; padding: 8px 10px; font-weight: 600; text-decoration: none; color: inherit; }
   /* status labels: color + words, always */
   .status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 15px; font-weight: 700; white-space: nowrap; }
   .st-urgent { background: var(--red-bg); color: var(--red); }
@@ -158,15 +161,28 @@
   <h1>Ace Fire LA &middot; Materials Tracker</h1>
   <span class="sp"></span>
   <span id="who" class="badge" hidden></span>
+  <a id="dash" class="hlink" href="https://acefirela.github.io/dashboard/" hidden title="Back to the ACE job dashboard">Dashboard</a>
   <button id="refresh" class="ghost" hidden title="Reload data">Refresh</button>
   <button id="logout" class="ghost" hidden>Sign out</button>
 </header>
 <nav id="nav" class="topnav" hidden aria-label="Pages"></nav>
 <main id="app"></main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.6"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // Apps Script web app URL (set after the first deployment; see README).
 const API_URL = "https://script.google.com/macros/s/AKfycbzAnJsbq-E3UAhiLc3Xg_Wo0FMFXUo3N-erkOycUmMR_M5iG9rW0QWCROO0REDewzt5/exec";
+
+// v3 - shared sign-in with the ACE job dashboard. This page lives on the same site
+// (acefirela.github.io), so it can read the dashboard's Supabase session. The server
+// checks that session and decides admin or staff; nothing here grants access by itself.
+const SB_URL = "https://uqikcjfshbvthkjgdwgr.supabase.co";
+const SB_KEY = "sb_publishable_3DnUFAIo4nC4goFO6ZdVXw_h_rggawn";
+const GOOGLE_CLIENT_ID = "974411831257-7ov5s0e5lvh5g4tetovdnl45iojibaa2.apps.googleusercontent.com";
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SB_URL, SB_KEY, { auth: { detectSessionInUrl: false } })   // this page uses #/ routes
+  : null;
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -175,7 +191,7 @@ const money3 = (n) => (n === "" || n == null || isNaN(Number(n))) ? "" : "$" + N
 const ym = (d) => String(d || "").slice(0, 7);
 const todayPT = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
 const isLow = (i) => i.min_level !== "" && i.min_level != null && i.qty_on_hand !== "" && i.qty_on_hand != null && Number(i.qty_on_hand) <= Number(i.min_level);
-const state = { role: null, name: "", passcode: "", data: null, D: null, tab: "overview", job: "", jshow: "", sec: "", panel: "", limit: 60, filters: { q: "", job: "", supplier: "", month: "", show: "" }, pq: "", pshow: "", iq: "", ishow: "" };
+const state = { role: null, mode: null, name: "", passcode: "", data: null, D: null, tab: "overview", job: "", jshow: "", sec: "", panel: "", limit: 60, filters: { q: "", job: "", supplier: "", month: "", show: "" }, pq: "", pshow: "", iq: "", ishow: "" };
 
 // ---------- formatting ----------
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -202,33 +218,110 @@ const needsJob = (p) => !hasJob(p) && !isQBOnly(p) && !isStockPO(p);
 const isReturn = (p) => p.type === "credit" || Number(p.total) < 0;
 const isCounted = (i) => String(i.last_counted || "").trim() !== "";
 
+async function sessionToken() {
+  if (!sb) return "";
+  try { const { data } = await sb.auth.getSession(); return (data && data.session && data.session.access_token) || ""; }
+  catch { return ""; }
+}
+
 async function api(payload) {
+  let cred;
+  if (state.mode === "session") {
+    const token = await sessionToken();
+    if (!token) throw new Error("bad_session");
+    cred = { token };
+  } else cred = { passcode: state.passcode, name: state.name };
   let text;
   try {
-    const res = await fetch(API_URL, { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, passcode: state.passcode, name: state.name }) });
+    const res = await fetch(API_URL, { method: "POST", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, ...cred }) });
     text = await res.text();
   } catch { throw new Error("Could not reach the server. Check the connection and try again."); }
   let j;
   try { j = JSON.parse(text); } catch { throw new Error("The server did not answer properly. Try again."); }
-  if (!j.ok) throw new Error(j.error || "request failed");
+  if (!j.ok) throw new Error(j.error === "auth_unavailable" ? "Could not check your sign-in right now. Try again in a minute." : (j.error || "request failed"));
   return j;
 }
 
-function renderLogin(msg = "") {
-  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = true;
+const AUTH_ERRORS = ["bad_passcode", "bad_session", "not_on_roster", "no_access"];
+function authMsg(err) {
+  const m = (err && err.message) || String(err);
+  if (m === "bad_passcode") return "That passcode is not right.";
+  if (m === "bad_session") return "Your sign-in has ended. Please sign in again.";
+  if (m === "no_access" || m === "not_on_roster") return "That Google account does not have access to the Materials Tracker. Sign in with your work account, or ask an admin.";
+  if (m === "server_outdated") return "Dashboard sign-in is not switched on for the tracker yet. Use the passcode below.";
+  return "Could not sign in: " + m;
+}
+
+// Dashboard sign-in: the server verifies the session and answers with the role and the roster name.
+async function enterSession() {
+  state.mode = "session"; state.data = null;
+  try {
+    const r = await api({ action: "login" });
+    state.role = r.role; state.name = r.name || "";
+  } catch (err) {
+    state.mode = null;
+    throw (err.message === "bad_passcode" ? new Error("server_outdated") : err);   // a server without the v4 sign-in block ignores the token
+  }
+  await load();
+}
+
+// Same Google button and nonce flow as the dashboard's Team Chat sign-in.
+function mountGoogle(el, tries = 0) {
+  if (!el || !el.isConnected) return;
+  const gid = window.google && google.accounts && google.accounts.id;
+  if (!gid) {
+    if (tries >= 40) {
+      el.innerHTML = `<span class="muted">Google sign-in did not load. Reload the page, or use the passcode below.</span>`;
+      const d = $("#pcd"); if (d) d.open = true;
+      return;
+    }
+    setTimeout(() => mountGoogle(el, tries + 1), 250);
+    return;
+  }
+  const raw = crypto.randomUUID() + "-" + crypto.randomUUID();
+  crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)).then((buf) => {
+    if (!el.isConnected) return;
+    const hashed = Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+    gid.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      nonce: hashed,
+      callback: async (resp) => {
+        const ge = $("#ge"); if (ge) ge.textContent = "Signing in...";
+        try {
+          const res = await sb.auth.signInWithIdToken({ provider: "google", token: resp.credential, nonce: raw });
+          if (res.error) throw res.error;
+          await enterSession();
+          afterNav();
+        } catch (err) { renderLogin(authMsg(err), err.message === "server_outdated"); }
+      },
+    });
+    el.innerHTML = "";
+    gid.renderButton(el, { theme: "outline", size: "large", text: "signin_with", shape: "pill" });
+  });
+}
+
+function renderLogin(msg = "", openPasscode = false) {
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = $("#dash").hidden = true;
   $("#app").innerHTML = `
     <div class="card login">
       <h3>Sign in</h3>
-      <p class="muted">Enter the passcode you were given and your name. Your name is recorded on anything you add.</p>
-      <form id="lf">
-        <label for="nm">Your name</label><input id="nm" required autocomplete="name" value="${esc(localStorage.getItem("mt_name") || "")}" style="width:100%">
-        <label for="pc" style="margin-top:10px">Passcode</label><input id="pc" type="password" required autocomplete="off" style="width:100%">
-        <div class="err" id="le">${esc(msg)}</div>
-        <button class="primary" style="width:100%;margin-top:6px">Open tracker</button>
-      </form>
+      ${sb ? `<p class="muted">Use the same Google account you use for the ACE dashboard.</p>
+      <div id="gbtn" class="gbtn"><span class="muted">Loading Google sign-in...</span></div>` : `<p class="muted">Google sign-in could not load on this device. Use the passcode below, or reload the page.</p>`}
+      <div class="err" id="ge">${esc(msg)}</div>
+      <details id="pcd"${sb && !openPasscode ? "" : " open"}>
+        <summary>Use a passcode instead</summary>
+        <p class="muted">Enter the passcode you were given and your name. Your name is recorded on anything you add.</p>
+        <form id="lf">
+          <label for="nm">Your name</label><input id="nm" required autocomplete="name" value="${esc(localStorage.getItem("mt_name") || "")}" style="width:100%">
+          <label for="pc" style="margin-top:10px">Passcode</label><input id="pc" type="password" required autocomplete="off" style="width:100%">
+          <div class="err" id="le"></div>
+          <button class="primary" style="width:100%;margin-top:6px">Open tracker</button>
+        </form>
+      </details>
     </div>`;
   $("#lf").onsubmit = async (e) => {
     e.preventDefault();
+    state.mode = "passcode";
     state.name = $("#nm").value.trim(); state.passcode = $("#pc").value.trim();
     $("#le").textContent = "Checking...";
     try {
@@ -236,8 +329,9 @@ function renderLogin(msg = "") {
       state.role = r.role;
       try { localStorage.setItem("mt_name", state.name); sessionStorage.setItem("mt_pc", state.passcode); } catch {}
       await load();
-    } catch (err) { $("#le").textContent = err.message === "bad_passcode" ? "That passcode is not right." : "Could not sign in: " + err.message; }
+    } catch (err) { state.mode = null; $("#le").textContent = authMsg(err); }
   };
+  if (sb) mountGoogle($("#gbtn"));
 }
 
 async function load() {
@@ -245,7 +339,7 @@ async function load() {
   let r;
   try { r = await api({ action: "list" }); }
   catch (err) {
-    if (err.message === "bad_passcode") { state.data = null; renderLogin("That passcode is not right. Please sign in again."); return; }
+    if (AUTH_ERRORS.includes(err.message)) { state.data = null; state.mode = null; renderLogin(authMsg(err)); return; }
     if (state.data) {
       render();
       $("#app").insertAdjacentHTML("afterbegin", `<p class="err">Could not refresh: ${esc(err.message)} <button id="retry" class="ghost">Retry</button></p>`);
@@ -370,7 +464,7 @@ function afterNav() {
 
 function render() {
   const admin = state.role === "admin";
-  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = false;
+  $("#who").hidden = $("#logout").hidden = $("#refresh").hidden = $("#nav").hidden = $("#dash").hidden = false;
   $("#who").textContent = `${state.name} · ${state.role}`; $("#who").className = "badge " + state.role;
   const D = state.D = derive();
   const tabs = [["overview", "Overview"], ["jobs", admin ? "Jobs & Budgets" : "Jobs"], ["purchases", "Purchases"], ["inventory", "Inventory"], ["prices", "Price History"]];
@@ -949,13 +1043,24 @@ document.addEventListener("click", (e) => {
 window.addEventListener("popstate", () => { applyHash(location.hash || "#/overview"); if (state.data) render(); });
 
 $("#refresh").onclick = load;
-$("#logout").onclick = () => { try { sessionStorage.removeItem("mt_pc"); } catch {} state.passcode = ""; state.role = null; state.data = null; renderLogin(); };
+$("#logout").onclick = async () => {
+  try { sessionStorage.removeItem("mt_pc"); } catch {}
+  if (state.mode === "session" && sb) { try { await sb.auth.signOut({ scope: "local" }); } catch {} }
+  state.passcode = ""; state.role = null; state.data = null; state.mode = null; renderLogin();
+};
 
-(function boot() {
+(async function boot() {
   try { state.name = localStorage.getItem("mt_name") || ""; state.passcode = sessionStorage.getItem("mt_pc") || ""; } catch {}
   if (location.hash) applyHash(location.hash);
   if (API_URL.startsWith("PASTE_")) { $("#app").innerHTML = `<div class="card"><b>Not connected yet.</b> The Apps Script URL has not been set in this page (see README).</div>`; return; }
-  if (state.passcode && state.name) load().then(afterNav); else renderLogin();
+  let sessionErr = null;
+  if (await sessionToken()) {
+    $("#app").innerHTML = `<p class="muted">Loading...</p>`;
+    try { await enterSession(); afterNav(); return; }
+    catch (err) { sessionErr = err; }
+  }
+  if (state.passcode && state.name) { state.mode = "passcode"; load().then(afterNav); }
+  else renderLogin(sessionErr ? authMsg(sessionErr) : "", !!sessionErr && sessionErr.message === "server_outdated");
 })();
 </script>
 </body>
